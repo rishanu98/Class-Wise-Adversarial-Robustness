@@ -25,7 +25,7 @@ def main(args):
 
    # h_net.load_state_dict(torch.load('hot_start.pt'))
 
-    ds_train, ds_valid, ds_test = get_cifar10_loader(batch_size=args.batch_size)
+    ds_train, ds_valid, ds_test, classes = get_cifar10_loader(batch_size=args.batch_size)
     
 
     ## other layer optimizer
@@ -56,7 +56,7 @@ def main(args):
     rate1 = args.rate1
     rate2 = args.rate2
     lim = args.lim
-    class_name = range(10)
+    #class_name = range(10)
     delta0 = args.bound0 * torch.ones(10)   ## fair constraints
     delta1 = args.bound1 * torch.ones(10)   ## fair constraints
     lmbda = torch.zeros(30)
@@ -69,7 +69,7 @@ def main(args):
         if now_epoch % 5 == 0:  ## take records
             print('test on current epoch')
             class_clean_error, class_bndy_error, total_clean_error, total_bndy_error = \
-                evaluate(h_net, ds_test, configs1, device, class_name, mode='Test')
+                evaluate(h_net, ds_test, configs1, device, classes, mode='Test')
 
             results = np.concatenate((np.array([total_clean_error, total_bndy_error]),
                                       class_clean_error.numpy().flatten(), class_bndy_error.numpy().flatten()))
@@ -81,7 +81,7 @@ def main(args):
         if now_epoch % 40 == 0:
             rate1 = rate1 / 2
 
-        lmbda = frl_train(h_net, ds_train, ds_valid, optimizer, class_name,now_epoch, configs,
+        lmbda = frl_train(h_net, ds_train, ds_valid, optimizer, classes,now_epoch, configs,
                               configs1, device, delta0, delta1, rate1, rate2, lmbda, beta, lim)
         lr_scheduler.step(now_epoch)
         print('................................................................................')

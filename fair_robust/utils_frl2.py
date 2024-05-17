@@ -8,6 +8,7 @@ import seaborn as sn
 import matplotlib.pyplot as plt
 
 alpha = 0.00784
+criterion = nn.CrossEntropyLoss()
 def pgd_attack(model,
                   X,
                   y,
@@ -123,8 +124,12 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
 
     correct = 0
     correct_adv = 0
+    adv_test_loss = 0 
+    test_loss = 0 
+
 
     all_label = []
+    loss_per_batch =[]
     all_pred = []
     all_pred_adv = []
     clean_pred = []
@@ -147,13 +152,14 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
         clean_pred.extend(pred.cpu().numpy())
 
         ## adv test
-        x_adv = pgd_linf(model, X = data, y = target, **configs)
+        x_adv = pgd_attack(model, X = data, y = target, **configs)
         output1 = model(x_adv)
         pred1 = output1.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
         add1 = pred1.eq(target.view_as(pred1)).sum().item()
         correct_adv += add1
         all_pred_adv.append(pred1)
         adv_pred.extend(pred1.cpu().numpy())
+    
 
     all_label = torch.cat(all_label).flatten()
     all_pred = torch.cat(all_pred).flatten()
@@ -167,26 +173,15 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
 
     class_clean_error = 1 - acc
     class_bndy_error = acc - acc_adv
-    
-    ''' plt.figure(figsize=(8, 6))
-    sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.title('Confusion Matrix for Targeted Attacks')
-
-
-    plt.tight_layout()
-
-    plt.savefig('targ.png')
-
-    plt.show()'''
 
     # Clean Confusion Matrix
-    Targ_conf_matrix = confusion_matrix(true_label, clean_pred)
-    targ_df_cm = pd.DataFrame(Targ_conf_matrix / np.sum(Targ_conf_matrix, axis=1)[:, None], index = [i for i in class_name],
+    clean_conf_matrix = confusion_matrix(clean_pred, true_label)
+    clean_df_cm = pd.DataFrame(clean_conf_matrix / np.sum(clean_conf_matrix, axis=1)[:, None], index = [i for i in class_name],
                      columns = [i for i in class_name])
-    clean_conf_matrix = confusion_matrix(true_label, adv_pred)
-    clean_df_cm = pd.DataFrame(clean_conf_matrix / np.sum(Targ_conf_matrix, axis=1)[:, None], index = [i for i in class_name],
+    
+    # Untargetd attack Confusion Matrix
+    Targ_conf_matrix = confusion_matrix(adv_pred, true_label)
+    targ_df_cm = pd.DataFrame(Targ_conf_matrix / np.sum(Targ_conf_matrix, axis=1)[:, None], index = [i for i in class_name],
                      columns = [i for i in class_name])
 
     plt.figure(figsize=(12, 6))
@@ -196,12 +191,6 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title('Confusion Matrix for Clean Predictions')
-
-    # Targeted Attack Confusion Matrix
-    Targ_conf_matrix = confusion_matrix(true_label, adv_pred)
-    targ_df_cm = pd.DataFrame(Targ_conf_matrix / np.sum(Targ_conf_matrix, axis=1)[:, None],
-                              index=[i for i in class_name],
-                              columns=[i for i in class_name])
 
     plt.subplot(1, 2, 2)
     sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)

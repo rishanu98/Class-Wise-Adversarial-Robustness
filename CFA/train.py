@@ -21,7 +21,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch-size', type=int, default=128)
     parser.add_argument('--epochs', default=200, type=int)
-    parser.add_argument('--model', default='RES18', type=str, choices=['PRN', 'WRN', 'RES18']) #
+    parser.add_argument('--model', default='RES18', type=str, choices=['PRN', 'WRN', 'RES18']) 
     parser.add_argument('--lr_max', default=0.1, type=float)
     parser.add_argument('--mode', default='TRADES', type=str, choices=['AT', 'TRADES', 'FAT'])
 
@@ -130,6 +130,36 @@ def eval_epoch(model, loader, device, class_name, attack, eps, beta, alpha, n_it
 
     return logger.result(), True_label, Predicted
 
+def clean_evaluate(model, test_loader, device, class_name, mode = 'Test'):
+
+    print('Doing evaluation mode ' + mode)
+    model.eval()
+
+    correct = 0
+
+
+    all_label = []
+    all_pred = []
+    clean_pred = []
+    true_label = []
+
+    for batch_idx, (data, target) in enumerate(test_loader):
+
+        data, target = torch.tensor(data).to(device), torch.tensor(target).to(device)
+        all_label.append(target)
+        true_label.extend(target.cpu().numpy())
+
+        ## clean test
+        output = model(data)
+        pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+        add = pred.eq(target.view_as(pred)).sum().item()
+        correct += add
+        model.zero_grad()
+        all_pred.append(pred)
+        clean_pred.extend(pred.cpu().numpy())
+    
+    return clean_pred, true_label
+
 def lr_schedule(t):
     if t / args.epochs < 0.5:
         return args.lr_max
@@ -183,8 +213,8 @@ if __name__ == '__main__':
         raise ValueError
     
     # init weight averaged model
-    EMA_model = PreActResNet18().to(device) if args.model == 'PRN' else WideResNet().to(device) # Exponential Moving Average
-    FAWA_model = PreActResNet18().to(device) if args.model == 'PRN' else WideResNet().to(device) # Fairness average weight averaging
+    EMA_model = PreActResNet18().to(device) if args.model == 'PRN' else ResNet18().to(device) # Exponential Moving Average
+    FAWA_model = PreActResNet18().to(device) if args.model == 'PRN' else ResNet18().to(device) # Fairness average weight averaging
     EMA_model.eval()
     FAWA_model.eval()  # FAWA method is a variant of weight average method with Exponential Moving Average
 
@@ -250,23 +280,44 @@ if __name__ == '__main__':
         model.eval()
         # test
         test_result, True_label, Predicted = eval_epoch(model, test_loader, device, class_names, pgd_loss, 8./255., beta, 2./255., 10)
-        conf_mat = confusion_matrix(Predicted,True_label)
-        row_sums = np.sum(conf_mat, axis=1)
+        clean_pred, True_label = clean_evaluate(model, test_loader, device, class_names, mode = 'Test')
+
+        # Clean Confusion Matrix
+        clean_conf_matrix = confusion_matrix(clean_pred, True_label)
+        row_sums = np.sum(clean_conf_matrix, axis=1)
+
+        # Prevent division by zero
         row_sums[row_sums == 0] = 1e-10
 
-        targ_df_cm = pd.DataFrame(conf_mat / row_sums[:,None], index = [i for i in class_names],
-                     columns = [i for i in class_names])
-        plt.figure(figsize=(8, 6))
-        sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
+        clean_df_cm = pd.DataFrame(clean_conf_matrix / row_sums[:, None], index=[i for i in class_names],
+                           columns=[i for i in class_names])
+
+        # CFA Confusion Matrix
+        conf_mat = confusion_matrix(Predicted, True_label)
+        row_sums = np.sum(conf_mat, axis=1)
+
+        # Prevent division by zero
+        row_sums[row_sums == 0] = 1e-10
+
+        targ_df_cm = pd.DataFrame(conf_mat / row_sums[:, None], index=[i for i in class_names],
+                          columns=[i for i in class_names])
+
+        plt.figure(figsize=(12, 6))
+
+        plt.subplot(1, 2, 1)
+        sn.heatmap(clean_df_cm, annot=True, cmap='Blues', cbar=False)
         plt.xlabel('Predicted')
         plt.ylabel('True')
-        plt.title('Confusion Matrix for TRADES_PRN_CCR model')
+        plt.title('Confusion Matrix for Clean Predictions')
 
+        plt.subplot(1, 2, 2)
+        sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
+        plt.xlabel('True')
+        plt.ylabel('Predicted')
+        plt.title('Confusion Matrix for AT_CCM_PGD')
 
         plt.tight_layout()
-
-        plt.savefig('TRADES_PRN_CCR.png')
-
+        plt.savefig('AT_CFA_Confusion_Matrix.png')  
         plt.show()
     
         # valid

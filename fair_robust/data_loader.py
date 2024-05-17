@@ -27,6 +27,7 @@ class Cifar10():
         if self.mode == 'train' or self.mode == 'valid':
 
             self.cifar10 = datasets.CIFAR10('./data', train=True, download=True)
+            
 
             data_source = self.cifar10.data
             label_source = self.cifar10.targets
@@ -48,6 +49,8 @@ class Cifar10():
                 self.data = np.concatenate(self.data)
                 self.labels = np.concatenate(self.labels)
 
+            
+
             elif self.mode == 'valid': ## validation data
 
                 classes = range(10)
@@ -65,6 +68,7 @@ class Cifar10():
             self.cifar10 = datasets.CIFAR10('./data', train=False, download=True)
             self.data = self.cifar10.data
             self.labels = self.cifar10.targets
+        self.classes = self.cifar10.classes
 
 
     def __len__(self):
@@ -92,8 +96,8 @@ class Cifar10():
 def get_cifar10_loader(batch_size):
 
     dataset1 = Cifar10(mode='train')
-    dataset2 = Cifar10(mode='valid')
-    dataset3 = Cifar10(mode='test')
+    dataset2  = Cifar10(mode='valid')
+    dataset3  = Cifar10(mode='test')
 
     train_loader = DataLoader(dataset=dataset1,
                              batch_size=batch_size,
@@ -106,5 +110,6 @@ def get_cifar10_loader(batch_size):
     test_loader = DataLoader(dataset=dataset3,
                               batch_size=batch_size,
                               shuffle=True)
+    class_names = dataset1.classes
 
-    return train_loader, valid_loader, test_loader
+    return train_loader, valid_loader, test_loader, class_names
