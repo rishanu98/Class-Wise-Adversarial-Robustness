@@ -14,7 +14,7 @@ from train_mode.stop_to_lastclean import *
 from train_mode.stop_to_firstadv import *
 import torchvision.models as models
 import random
-from utils.attacks import pgd_linf,mixup_data
+from utils.attacks import pgd_linf,mixup_data,pgd_linf_targ2
 
 from sklearn.metrics import confusion_matrix
 import numpy as np
@@ -104,7 +104,7 @@ def train(args, model, device, train_loader, optimizer, epoch, ema=None):
         else:
             print_flag = False
 
-        target_classes = torch.randint(3,7,(target.size(0),)).to(device)   # create a target class tensor which only includes hard classes 
+        ''' target_classes = torch.randint(3,7,(target.size(0),)).to(device)   # create a target class tensor which only includes hard classes 
 
         assert target_classes.shape == target.shape, "Shapes do not match"
 
@@ -113,13 +113,13 @@ def train(args, model, device, train_loader, optimizer, epoch, ema=None):
             mixed_inputs, mixed_labels = mixup_data(data, target, alpha = 0.2, device='cuda')
         else:
             mixed_inputs = data
-            mixed_labels = target
+            mixed_labels = target'''
     
-        last_clean, lastclean_target, _, _ = stop_to_lastclean(model, mixed_inputs, mixed_labels, print_flag, step_size=args.step_size,
+        last_clean, lastclean_target, _, _ = stop_to_lastclean(model, data, target, print_flag, step_size=args.step_size,
                                                                     epsilon=args.epsilon, perturb_steps=args.num_steps,
                                                                     randominit_type="normal_distribution_randominit", loss_fn='kl') 
 
-        first_adv, _, output_natural, _ = stop_to_firstadv(model, mixed_inputs, mixed_labels, step_size=args.step_size,
+        first_adv, _, output_natural, _ = stop_to_firstadv(model, data, target, step_size=args.step_size,
                                                                     epsilon=args.epsilon, perturb_steps=args.num_steps,
                                                                     randominit_type="normal_distribution_randominit", loss_fn='kl',tau=1) 
 
@@ -138,7 +138,7 @@ def train(args, model, device, train_loader, optimizer, epoch, ema=None):
 
         # print progress
         if batch_idx % args.log_interval == 0:
-            with open('Results_1.txt', 'a') as file:
+            with open('Results_2.txt', 'a') as file:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
                         100. * batch_idx / len(train_loader), loss.item()),file=file)
@@ -156,7 +156,7 @@ def eval_train(model, epoch,device, train_loader):
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(target.view_as(pred)).sum().item()
     train_loss /= len(train_loader.dataset)
-    with open('Results_1.txt', 'a') as file:
+    with open('Results_2.txt', 'a') as file:
         print('Epoch: {}.\n'.format(epoch), file=file)
         print('Training: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%).\n'.format(
             train_loss, correct, len(train_loader.dataset),
@@ -174,7 +174,7 @@ def eval_test(model,device, test_loader):
     with torch.no_grad():
         for (data, target) in test_loader:
             data, target = data.to(device), target.to(device)
-            adv_data = pgd_linf(model, data, target, epsilon=args.epsilon, alpha=0.01, num_iter=10, randomize=False)
+            adv_data = pgd_linf_targ2(model,data, target, epis=args.epsilon, alp=0.01, k=10)
             output = model(data+adv_data)
             test_loss += F.cross_entropy(output, target, size_average=False).item()
             pred = output.max(1, keepdim=True)[1]
@@ -183,7 +183,7 @@ def eval_test(model,device, test_loader):
             True_label.extend(target.cpu().numpy())
             predicted_label.extend(pred.cpu().numpy())
     test_loss /= len(test_loader.dataset)
-    with open('Results_1.txt', 'a') as file:
+    with open('Results_2.txt', 'a') as file:
         print('Test: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%.\n)'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)),file=file)
@@ -197,12 +197,12 @@ def eval_test(model,device, test_loader):
     sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
     plt.xlabel('Predicted')
     plt.ylabel('True')
-    plt.title('Confusion Matrix for targeted Attacks with MIX-UP and untargeted testing')
+    plt.title('Confusion Matrix for targeted Attacks and Targeted testing')
 
 
     plt.tight_layout()
 
-    plt.savefig('./RESULTS/Conf_Mat_BAT_UNTARGETD_TESTING+TARGETED_TRAINING+MIXUP.png')
+    plt.savefig('./RESULTS/Conf_Mat_BAT_TARGETD_TESTING+TARGETED_TRAINING.png')
 
     plt.show()
 
@@ -231,7 +231,7 @@ def main():
         # adjust learning rate for SGD
         adjust_learning_rate(optimizer, epoch)
 
-        with open('Results_1.txt','a') as file:
+        with open('Results_2.txt','a') as file:
             if epoch == 1:
                 print('Results for Targeted Training and Untargeted Testing',file=file)
 
@@ -239,7 +239,7 @@ def main():
         train(args, model, device, train_loader, optimizer, epoch)
 
         # evaluation on natural examples
-        with open('Results_1.txt','a') as file:
+        with open('Results_2.txt','a') as file:
             print('================================================================',file=file)
             eval_train(model, epoch,device, train_loader)
             eval_test(model,device, test_loader)

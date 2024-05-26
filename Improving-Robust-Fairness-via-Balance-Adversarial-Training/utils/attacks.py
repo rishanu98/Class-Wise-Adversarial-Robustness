@@ -43,14 +43,14 @@ def pgd_linf(model, X, y, epsilon=0.031, alpha=0.01, num_iter=10, randomize=Fals
         delta.grad.zero_()
     return delta.detach()
 
-def pgd_linf_targ2(self, x_natural, y_targ, epis, alp, k):
+def pgd_linf_targ2(model,x_natural, y_targ, epis, alp, k):
         'Construct PGD targeted examples on example X'
         x = x_natural.detach()
         x = x + torch.zeros_like(x).uniform_(-epis, epis)
         for i in range(k):
             x.requires_grad_()
             with torch.enable_grad():
-                logits = self.model(x)
+                logits = model(x)
                 targeted_labels = torch.zeros(logits.shape[0], dtype=torch.long, device=device).fill_(y_targ[0])
                 loss = F.cross_entropy(logits[:, y_targ], targeted_labels)
        
