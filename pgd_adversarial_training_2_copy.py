@@ -149,56 +149,49 @@ test_metrics = pd.DataFrame(columns=['Test Accuracy', 'Adv Test Accuracy'])
 def adversarial_train(epoch, train_metrics):
     print('\n[ Train epoch: %d ]' % epoch)
     net.train()
-    Accuracy =  0
     train_loss = 0
-    benign_Acc = 0
-    targ_Acc = 0
-    benign_train_loss = 0
-    tar_train_loss = 0
-    tar_correct = 0
-    benign_correct = 0
-    correct = 0
+    targ_correct = 0
     total = 0
+
     for batch_idx, (inputs, targets) in enumerate(train_loader):
         inputs, targets = inputs.to(device), targets.to(device)
 
+        # Generate random target classes for targeted attack
+        # Evaluate on targeted adversarial examples
+        y_targ = targets.clone()
+        for i in range(targets.size(0)):
+            current_target = targets[i].item()
+            new_target = current_target
+            while new_target == current_target:
+                new_target = torch.randint(0, len(class_names), (1,)).item()
+            y_targ[i] = new_target
 
+        # PGD attack on inputs to generate adversarial examples
+        x_adv_targ = pgd_linf_targeted(net, inputs, y_targ, epsilon, alpha, k, device=device)
 
-        # clean training
+        # Forward pass and calculate loss
         optimizer.zero_grad()
-        output = net(inputs)
-        benign_loss = criterion(output, targets)
-        benign_loss.backward()
+        outputs = net(x_adv_targ)
+        loss = criterion(outputs, y_targ)
+        loss.backward()
         optimizer.step()
 
-
-
-        # Loss and prediction of  Model
-        train_loss += benign_loss.item()
-        benign_train_loss += benign_loss.item() 
-        _, benign_pred = output.max(1)   
-
+        # Record statistics
+        train_loss += loss.item()
+        _, predicted = outputs.max(1)
         total += targets.size(0)
-        benign_correct += benign_pred.eq(targets).sum().item() #The predicted.eq(targets) part compares the predicted values with the target values element-wise
+        targ_correct += predicted.eq(y_targ).sum().item()
 
-        ben_predicted_label.extend(benign_pred.cpu().numpy())
-        
         if batch_idx % 10 == 0:
-            print('\nCurrent batch:', str(batch_idx))
-            print('Current benign train accuracy:', str(benign_pred.eq(targets).sum().item() / targets.size(0)))
-            print('Benign train loss:',benign_loss.item())
-    
-    benign_Acc = 100. * benign_correct/total
+            print(f"Batch {batch_idx}:")
+            print('Current targeted train accuracy:', predicted.eq(y_targ).sum().item() / targets.size(0))
+            print('Targeted train loss:', loss.item())
 
-    print(f"\nTotal Benig train accuracy: {np.round(np.array(benign_Acc), decimals=3)}%")
+    # Calculate metrics
+    train_accuracy = 100. * targ_correct / total
 
-    # Create a DataFrame for the training metrics
-    
-    train_metrics = train_metrics.append({'Epochs': (epoch+1), 'Train Accuracy': benign_Acc }, ignore_index = True)
-
-    # round off the values
-    train_metrics['Train Accuracy'] = train_metrics['Train Accuracy'].round(3)
-
+    # Update train metrics dataframe
+    train_metrics = train_metrics.append({'Epochs': epoch, 'Train Accuracy': train_accuracy}, ignore_index=True)
 
     return train_metrics
 
@@ -225,7 +218,7 @@ def test(epoch):
             total += targets.size(0)
 
             # Evaluate on clean data
-            outputs = net(inputs)
+            '''outputs = net(inputs)
             loss = criterion(outputs, targets)
             benign_loss += loss.item()
 
@@ -236,16 +229,21 @@ def test(epoch):
             # Evaluate on untargeted adversarial examples
             x_adv = adversary.perturb(inputs, targets)
             adv_outputs = net(x_adv)
-            Untarg_adv_loss = criterion(adv_outputs, targets)
-            adv_loss += Untarg_adv_loss.item()
+            adv_loss = criterion(adv_outputs, targets)
+            adv_loss += loss.item()
 
             _, adv_predicted = adv_outputs.max(1)
             adv_correct += adv_predicted.eq(targets).sum().item()
-            UnTarg_predicted.extend(adv_predicted.cpu().numpy())
+            UnTarg_predicted.extend(adv_predicted.cpu().numpy())'''
 
             # Evaluate on targeted adversarial examples
-            y_targ = torch.randint(0, len(class_names), targets.shape, device=device)
-
+            y_targ = targets.clone()
+            for i in range(targets.size(0)):
+                current_target = targets[i].item()
+                new_target = current_target
+                while new_target == current_target:
+                    new_target = torch.randint(0, len(class_names), (1,)).item()
+                y_targ[i] = new_target
 
             x_adv_targ = pgd_linf_targeted(net, inputs, y_targ, epsilon, alpha, k, device=device)
             targ_outputs = net(x_adv_targ)
@@ -262,26 +260,22 @@ def test(epoch):
             targeted_labels.extend(y_targ.cpu().numpy())
 
     
-    benign_Test_Accuracy = 100. * benign_correct / total
-    Adv_Test_Aaccuracy = 100. * adv_correct / total
+
     Targ_Test_Accuracy = 100. * targ_correct / total
 
-    print('\nTotal benign test accuracy:', benign_Test_Accuracy)
-    print('Total adversarial test accuracy:', Adv_Test_Aaccuracy)
+
     print('Total targeted adversarial test accuracy:', Targ_Test_Accuracy)
-    print('Total benign test loss:', benign_loss)
-    print('Total adversarial test loss:', adv_loss)
     print('Total targeted adversarial test loss:', targ_loss)
 
     # Confusion matrices
-    clean_conf_matrix = confusion_matrix(True_label, clean_pred)
-    Untargeted_conf_matrix = confusion_matrix(True_label, UnTarg_predicted)
+    #clean_conf_matrix = confusion_matrix(True_label, clean_pred)
+    #Untargeted_conf_matrix = confusion_matrix(True_label, UnTarg_predicted)
     Targeted_conf_matrix = confusion_matrix(True_label, targ_predicted_list)
 
     # Plot confusion matrices
-    plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Clean Training and Clean Predictions')
-    plot_confusion_matrix(Untargeted_conf_matrix, class_names, title='Confusion Matrix for Clean Training and Untargeted Predictions')
-    plot_confusion_matrix(Targeted_conf_matrix, class_names, title='Confusion Matrix for Clean Training and Targeted Predictions')
+    #plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Clean Training and Clean Predictions')
+    #plot_confusion_matrix(Untargeted_conf_matrix, class_names, title='Confusion Matrix for Clean Training and Untargeted Predictions')
+    plot_confusion_matrix(Targeted_conf_matrix, class_names, title='Confusion Matrix for Targeted Training and Targeted Predictions')
     
     #test_metrics = test_metrics.append({ 'Clean Test Accuracy':benign_Test_Accuracy,'Untargeted Test Accuracy':Adv_Test_Aaccuracy,'Targeted Test Accuracy':Targeted_conf_matrix}, ignore_index = True)
 

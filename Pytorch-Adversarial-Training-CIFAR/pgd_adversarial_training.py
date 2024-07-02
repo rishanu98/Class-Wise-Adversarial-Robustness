@@ -3,6 +3,11 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
+from sklearn.metrics import confusion_matrix
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sn
 
 import torchvision
 import torchvision.transforms as transforms
@@ -18,6 +23,9 @@ alpha = 0.00784   # Step size for each perturbation
 file_name = 'pgd_adversarial_training'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+True_label = []
+UnTarg_predicted = []
+clean_pred = []
 
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -31,6 +39,7 @@ transform_test = transforms.Compose([
 
 train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+class_names = train_dataset.classes
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=False, num_workers=4)
@@ -116,12 +125,13 @@ def test(epoch):
             loss = criterion(outputs, targets)
             benign_loss += loss.item()
 
-            _, predicted = outputs.max(1)
-            benign_correct += predicted.eq(targets).sum().item()
+            _, clean_predicted = outputs.max(1)
+            benign_correct += clean_predicted.eq(targets).sum().item()
+            clean_pred.extend(clean_predicted.cpu().numpy())
 
             if batch_idx % 10 == 0:
                 print('\nCurrent batch:', str(batch_idx))
-                print('Current benign test accuracy:', str(predicted.eq(targets).sum().item() / targets.size(0)))
+                print('Current benign test accuracy:', str(clean_predicted.eq(targets).sum().item() / targets.size(0)))
                 print('Current benign test loss:', loss.item())
 
             x = adversary.perturb(inputs, targets)
@@ -129,12 +139,16 @@ def test(epoch):
             loss = criterion(adv_outputs, targets)
             adv_loss += loss.item()
 
-            _, predicted = adv_outputs.max(1)
-            adv_correct += predicted.eq(targets).sum().item()
+            _, adv_predicted = adv_outputs.max(1)
+            adv_correct += adv_predicted.eq(targets).sum().item()
+            UnTarg_predicted.extend(adv_predicted.cpu().numpy())
 
             if batch_idx % 10 == 0:
-                print('Current adversarial test accuracy:', str(predicted.eq(targets).sum().item() / targets.size(0)))
+                print('Current adversarial test accuracy:', str(adv_predicted.eq(targets).sum().item() / targets.size(0)))
                 print('Current adversarial test loss:', loss.item())
+
+            # Transfering data on cpu to plot confusion matrix
+            True_label.extend(targets.cpu().numpy())
     
     benign_Test_Accuracy = 100. * benign_correct / total
     Adv_Test_Aaccuracy = 100. * adv_correct / total
@@ -145,6 +159,14 @@ def test(epoch):
     print('Total benign test loss:', benign_loss)
     print('Total adversarial test loss:', adv_loss)
 
+# Confusion matrices
+    clean_conf_matrix = confusion_matrix(True_label, clean_pred)
+    Untargeted_conf_matrix = confusion_matrix(True_label, UnTarg_predicted)
+    
+    # Plot confusion matrices
+    plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training and Clean Predictions')
+    plot_confusion_matrix(Untargeted_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training and UnTargeted Predictions')
+    
     state = {
         'net': net.state_dict()
     }
@@ -152,6 +174,17 @@ def test(epoch):
         os.mkdir('checkpoint')
     torch.save(state, './checkpoint/' + file_name)
     print('Model Saved!')
+    return benign_Test_Accuracy, Adv_Test_Aaccuracy
+
+def plot_confusion_matrix(conf_matrix, class_names, title):
+    df_cm = pd.DataFrame(conf_matrix / np.sum(conf_matrix, axis=1)[:, None], index=class_names, columns=class_names)
+    plt.figure(figsize=(10, 7))
+    sn.heatmap(df_cm, annot=True, cmap='Blues', cbar=False)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title(title)
+    plt.savefig(title)
+    plt.show()
 
 def adjust_learning_rate(optimizer, epoch):
     lr = learning_rate
