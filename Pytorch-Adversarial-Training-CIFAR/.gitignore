@@ -4,6 +4,12 @@ __pycache__/
 hot_start.py
 ./../venv
 job-file.sh
+job-file-copy.sh
+job-file-copy-new.sh
+job-file-copy-copy.sh
 metrics.csv
 Conf_Mat_targ.png
 Conf_Mat_targ(Mix_Up).png
+pgd_adversarial_training.py
+*.out
+Untarg.csv

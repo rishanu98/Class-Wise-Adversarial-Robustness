@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
 import torchvision
+from tqdm import tqdm
 import torchvision.transforms as transforms
 import pandas as pd
 from sklearn.metrics import confusion_matrix
@@ -18,12 +19,9 @@ from models import *
 
 learning_rate = 0.1
 epsilon = 0.0314  # Magnitude of the perturbation
-
 k = 7
 alpha = 0.00784   # Step size for each perturbation
-alp =1e-2
 file_name = 'pgd_adversarial_training'
-target_indices = [3, 7, 9]
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -39,15 +37,14 @@ transform_test = transforms.Compose([
 
 train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-class_name = train_dataset.classes
+class_names = train_dataset.classes
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=100, shuffle=False, num_workers=4)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=2)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False, num_workers=2)
 
 class LinfPGDAttack(object):
-    def __init__(self, model, num_classes):
+    def __init__(self, model):
         self.model = model
-        self.num_classes = num_classes
 
     def perturb(self, x_natural, y):
         x = x_natural.detach()
@@ -63,43 +60,34 @@ class LinfPGDAttack(object):
             x = torch.clamp(x, 0, 1)
         return x
     
-    def pgd_linf_targ2(self, x_natural, y, y_targ, epis, alp, k):
-        x = x_natural.detach()
-        x = x + torch.zeros_like(x).uniform_(-epis, epis)
-        for i in range(k):
-            x.requires_grad_()
-            with torch.enable_grad():
-                logits = self.model(x)
-                targeted_labels = torch.zeros(logits.shape[0], dtype=torch.long, device=device).fill_(y_targ[0])
-                loss = F.cross_entropy(logits[:, y_targ], targeted_labels)
-       
-            grad = torch.autograd.grad(loss, [x])[0]
-          
-            x = x.detach() + alp * torch.sign(grad.detach())
-            x = torch.min(torch.max(x, x_natural - epis), x_natural + epis)
-            x = torch.clamp(x, 0, 1)
-
-        return x
+    '''def pgd_linf_targ2(self, x_natural , y_targ):
+        delta = torch.zeros_like(x_natural, requires_grad=True)
+        for t in range(k):
+            yp = self.model(x_natural + delta)
+            loss = 2*yp[:,y_targ].sum() - yp.sum()
+            loss.backward()
+            delta.data = (delta + alpha*delta.grad.detach().sign()).clamp(-epsilon,epsilon)
+            delta.grad.zero_()
+        return delta.detach()'''
     
-    def mixup_data(x, y, alpha = 0.2, device='cuda'):
-        '''Returns mixed inputs, pairs of targets, and lambda'''
+
+    
+    def mixup_data(x, y, alpha=1.0, device='cuda'):
+   # '''Returns mixed inputs, pairs of targets, and lambda'''
         if alpha > 0:
-            lam = np.random.beta(alpha, alpha).cpu()
+            lam = np.random.beta(alpha, alpha)
         else:
-            lam = np.random.beta(alpha, alpha).cpu()
+            lam = 1
 
         batch_size = x.size()[0]
-
-        if device == 'cuda':
-            index = torch.randperm(batch_size).cuda() # generates a random permutation of indices for shuffling the samples. This is used to select a random sample from the dataset to mix with the current sample.
+        if device=='cuda':
+            index = torch.randperm(batch_size).cuda()
         else:
             index = torch.randperm(batch_size)
-        
+
         mixed_x = lam * x + (1 - lam) * x[index, :]
         y_a, y_b = y, y[index]
-        mixed_y = lam * y_a + (1 - lam) * y_b
-        return mixed_x, mixed_y
-        
+        return mixed_x, y_a, y_b, lam
     
 
 def attack(x, y, model, adversary):
@@ -109,23 +97,40 @@ def attack(x, y, model, adversary):
     adv = adversary.perturb(x, y)
     return adv
 
+def pgd_linf_targeted(model, x_natural, y_targ, epsilon, alpha, k, device):
+    x = x_natural.detach()
+    x = x + torch.zeros_like(x).uniform_(-epsilon, epsilon)
+    for i in range(k):
+        x.requires_grad_()
+        with torch.enable_grad():
+            logits = model(x)
+            targeted_labels = y_targ
+            loss = F.cross_entropy(logits, targeted_labels)
+        
+        grad = torch.autograd.grad(loss, [x])[0]
+        x = x.detach() - alpha * torch.sign(grad.detach())  # Note the '-' for maximizing loss
+        x = torch.min(torch.max(x, x_natural - epsilon), x_natural + epsilon)
+        x = torch.clamp(x, 0, 1)
+    
+    return x
 
-def choose_target_class(original_class, num_classes):
-    # Generate a tensor with possible target classes excluding the original class
-    possible_target_classes = torch.tensor([i for i in range(num_classes) if i != original_class])
-    
-    # Randomly choose a target class from the tensor
-    target_class = torch.randint(0, len(possible_target_classes), (1,))
-    
-    return possible_target_classes[target_class].item()
+# Helper function to plot confusion matrix
+def plot_confusion_matrix(conf_matrix, class_names, title):
+    df_cm = pd.DataFrame(conf_matrix / np.sum(conf_matrix, axis=1)[:, None], index=class_names, columns=class_names)
+    plt.figure(figsize=(10, 7))
+    sn.heatmap(df_cm, annot=True, cmap='Blues', cbar=False)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title(title)
+    plt.savefig(f"{title}.png")
+    plt.show()
 
 net = ResNet18()
 net = net.to(device)
 net = torch.nn.DataParallel(net)
-num_classes=10
 cudnn.benchmark = True
 
-adversary = LinfPGDAttack(net, num_classes)
+adversary = LinfPGDAttack(net)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, weight_decay=0.0002)
 
@@ -145,199 +150,113 @@ test_metrics = pd.DataFrame(columns=['Test Accuracy', 'Adv Test Accuracy'])
 def adversarial_train(epoch, train_metrics):
     print('\n[ Train epoch: %d ]' % epoch)
     net.train()
-    Accuracy =  0
     train_loss = 0
-    benign_Acc = 0
-    targ_Acc = 0
-    benign_train_loss = 0
-    tar_train_loss = 0
-    tar_correct = 0
-    benign_correct = 0
-    correct = 0
+    targ_correct = 0
     total = 0
+
     for batch_idx, (inputs, targets) in enumerate(train_loader):
         inputs, targets = inputs.to(device), targets.to(device)
+        print(f'Inside for loop: batch {batch_idx}')
+        # Generate random target classes for targeted attack
+        # Evaluate on targeted adversarial examples
+        y_targ = torch.randint(0, len(class_names), targets.shape).to(device)
+        while torch.any(y_targ.eq(targets)):
+            y_targ = torch.randint(0, len(class_names), targets.shape).to(device)
 
-        #target_classes = [i for i in range(10) if i != targets.item()]
+        # PGD attack on inputs to generate adversarial examples
+        x_adv_targ = pgd_linf_targeted(net, inputs, y_targ, epsilon, alpha, k, device=device)
 
-        target_classes = torch.randint(3,7,(targets.size(0),)).to(device)
-
-        assert target_classes.shape == targets.shape, "Shapes do not match"
-
-        if torch.equal(targets, target_classes):
-        
-            mixed_inputs, mixed_labels = adversary.mixup_data(inputs, targets)
-        
-        else :
-            mixed_inputs = inputs
-            mixed_labels = targets
-
-
-        # Non-adversarial training
-        '''optimizer.zero_grad()
-        output = net(inputs)
-        benign_loss = criterion(output, targets)
-        benign_loss.backward()
-        optimizer.step()'''
-
-        #Targeted attack
+        # Forward pass and calculate loss
         optimizer.zero_grad()
-        adv = adversary.pgd_linf_targ2(mixed_inputs, mixed_labels, torch.randint(0,10,(targets.size(0),)).to(device), epis=0.2, alp= 1e-2, k=7)
-        #print("Delta train grad_fn:", adv.data)
-        tar_outputs = net(adv)
-        targ_loss = criterion(tar_outputs, targets)
-        targ_loss.backward()
+        outputs = net(x_adv_targ)
+        loss = criterion(outputs, y_targ)
+        loss.backward()
         optimizer.step()
 
-        # Loss and prediction of Adv_Model and Model
-        #train_loss += loss.item()
-        #benign_train_loss += benign_loss.item() 
-        tar_train_loss += targ_loss.item()
-       # _, predicted = adv_outputs.max(1) # adv pred
-        #_, benign_pred = output.max(1)   # benign pred
-        _, tar_pred = tar_outputs.max(1) #targ pred
-
+        # Record statistics
+        train_loss += loss.item()
+        _, predicted = outputs.max(1)
         total += targets.size(0)
-        #correct += predicted.eq(targets).sum().item() #The predicted.eq(targets) part compares the predicted values with the target values element-wise
-       # benign_correct += benign_pred.eq(targets).sum().item()
-        tar_correct += tar_pred.eq(targets).sum().item()
+        targ_correct += predicted.eq(y_targ).sum().item()
 
-        
         if batch_idx % 10 == 0:
-            print('\nCurrent batch:', str(batch_idx))
-           # print('Current adversarial train accuracy:', str(predicted.eq(targets).sum().item() / targets.size(0)))
-           # print('Current benign train accuracy:', str(benign_pred.eq(targets).sum().item() / targets.size(0)))
-            print('Current targeted train accuracy:', str(tar_pred.eq(targets).sum().item() / targets.size(0)))
-           # print('Current adversarial train loss:', loss.item())
-            #print('Benign train loss:',benign_loss.item())
-            print('target train loss:',targ_loss.item())
-    
-   # Accuracy =  100. * correct / total
-    #benign_Acc = 100. * benign_correct/total
-    targ_Acc = 100. * tar_correct/total
+            print(f"Batch {batch_idx}:")
+            print('Current targeted train accuracy:', predicted.eq(y_targ).sum().item() / targets.size(0))
+            print('Targeted train loss:', loss.item())
 
-   # print(f"\nTotal Benig train accuracy: {np.round(np.array(benign_Acc), decimals=3)}%")
-    #print(f"Total Benig train Loss: {np.round(np.array(benign_train_loss), decimals=3)}")
-   # print(f"Total Adversarial train accuarcy: {np.round(np.array(Accuracy), decimals=3)}%")
-    print(f"Total target train accuarcy: {np.round(np.array(targ_Acc), decimals=3)}%")
-    
+    # Calculate metrics
+    train_accuracy = 100. * targ_correct / total
 
-
-    # Create a DataFrame for the training metrics
-    
-    #train_metrics = train_metrics.append({'Epochs': (epoch+1), 'Train Accuracy': benign_Acc, 'Targeted Train Accuracy': targ_Acc }, ignore_index = True)
-    train_metrics = train_metrics.append({'Epochs': (epoch+1), 'Targeted Train Accuracy': targ_Acc }, ignore_index = True)
-
-    # round off the values 
-    train_metrics['Targeted Train Accuracy'] = train_metrics['Targeted Train Accuracy'].round(3)
-
+    # Update train metrics dataframe
+    train_metrics = train_metrics.append({'Epochs': epoch, 'Train Accuracy': train_accuracy}, ignore_index=True)
 
     return train_metrics
 
-def test(epoch, test_metrics):
-    adversarial_test_accuracy = []
-    benign_test_accuracy = []
+def test(epoch):
     print('\n[ Test epoch: %d ]' % epoch)
     net.eval()
-    test_accuracy = 0
     benign_loss = 0
-    ben_test_accuracy = 0
     adv_loss = 0
-    Targ_loss=0
-    Targeted_correct=0
-    targ_test_Accuracy = 0
+    targ_loss = 0
     benign_correct = 0
     adv_correct = 0
+    targ_correct = 0
     total = 0
+    clean_pred = []
+    adv_predicted_list = []
+    UnTarg_predicted = []
+    targ_predicted_list = []
+    True_label = []
+    targeted_labels = []
+
     with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(test_loader):
+        for batch_idx, (inputs, targets) in tqdm(enumerate(test_loader), total=len(test_loader), desc="Testing"):
             inputs, targets = inputs.to(device), targets.to(device)
             total += targets.size(0)
-            
-            # Benign Accuracy
-            '''benign_output = net(inputs)
-            Benign_loss = criterion(benign_output, targets)
-            benign_loss += Benign_loss.item()
 
-            _, benign_predicted = benign_output.max(1)
-            benign_correct += benign_predicted.eq(targets).sum().item()'''
-            
-            #Targeted test Accuracy
-            
-            delta_Test = adversary.pgd_linf_targ2(inputs, targets, torch.randint(0, 10, (targets.size(0),)).to(device), epis=0.2, alp= 1e-2, k = 7)
-            targ_outputs = net(delta_Test)
-            targeted_loss = criterion(targ_outputs, targets)
-            Targ_loss += targeted_loss.item()
+            # Evaluate on clean data
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
+            benign_loss += loss.item()
 
-            _, Targeted_predicted = targ_outputs.max(1)
-            Targeted_correct += Targeted_predicted.eq(targets).sum().item()
+            _, clean_predicted = outputs.max(1)
+            benign_correct += clean_predicted.eq(targets).sum().item()
+            clean_pred.extend(clean_predicted.cpu().numpy())
+
+            # Generate random target classes for targeted attack
+            y_targ = torch.randint(0, len(class_names), targets.shape).to(device)
+            while torch.any(y_targ.eq(targets)):
+                y_targ = torch.randint(0, len(class_names), targets.shape).to(device)
+
+            # Generate targeted adversarial examples
+            x_adv_targ = pgd_linf_targeted(net, inputs, y_targ, epsilon, alpha, k, device=device)
+
+            # Evaluate on targeted adversarial examples
+            targ_outputs = net(x_adv_targ)
+            targ_loss += criterion(targ_outputs, y_targ).item()
+
+            _, targ_predicted = targ_outputs.max(1)
+            targ_correct += targ_predicted.eq(y_targ).sum().item()
+            targ_predicted_list.extend(targ_predicted.cpu().numpy())
 
             # Transfering data on cpu to plot confusion matrix
             True_label.extend(targets.cpu().numpy())
-           # Adv_predicted_label.extend(predicted.cpu().numpy())
-            #ben_predicted_label.extend(benign_predicted.cpu().numpy())
-            Target_predicted.extend(Targeted_predicted.cpu().numpy())
+            targeted_labels.extend(y_targ.cpu().numpy())
 
+    Targ_Test_Accuracy = 100. * targ_correct / total
+    Clean_test_Accuracy = 100. * benign_correct / total
 
-            if batch_idx % 10 == 0:
-                print('\nCurrent batch:', str(batch_idx))
-                #print('Current benign test accuracy:', str(benign_predicted.eq(targets).sum().item() / targets.size(0)))
-                #print('Current benign test loss:', Benign_loss.item())
-               # print('Current adversarial test accuracy', str(predicted.eq(targets).sum().item() / targets.size(0)))
-                print('Current Targeted test accuracy', str(Targeted_predicted.eq(targets).sum().item() / targets.size(0)))
-    
-   # ben_test_accuracy = 100. * benign_correct / total
-    targ_test_Accuracy = 100. * Targeted_correct/ total
+    print('Total targeted adversarial test accuracy:', Targ_Test_Accuracy)
+    print('Total clean test accuracy:', Clean_test_Accuracy)
+    print('Total targeted adversarial test loss:', targ_loss)
 
-    
-   # print(f"\nTotal benign test accuarcy: {round(ben_test_accuracy, 2)}%")
-   # print(f"Total adversarial test Accuarcy: {round(adv_test_Accuracy,2)}%")
-    print(f"Total Targeted test Accuracy: {round(targ_test_Accuracy,2)}%")
-    #print(f"Total benign test loss: {round(benign_loss,3)}")
-    print(f"Total adversarial test loss: {round(adv_loss,3)}")
+    # Confusion matrices
+    clean_conf_matrix = confusion_matrix(True_label, clean_pred)
+    Targeted_conf_matrix = confusion_matrix(True_label, targ_predicted_list)
 
-    #test_metrics = test_metrics.append({ 'Test Accuracy': ben_test_accuracy, 'Targeted Test Accuracy': targ_test_Accuracy}, ignore_index = True)
-    test_metrics = test_metrics.append({ 'Targeted Test Accuracy': targ_test_Accuracy}, ignore_index = True)
-
-    #test_metrics['Test Accuracy'] = test_metrics['Test Accuracy'].round(3)
-    test_metrics['Targeted Test Accuracy'] = test_metrics['Targeted Test Accuracy'].round(3)
-
-    # Compute confusion matrix
-    Targ_conf_matrix = confusion_matrix(True_label, Target_predicted)
-
-    # Normalize the confusion matrices conf_matrix / np.sum(conf_matrix, axis=1)[:, None]
-    #df_cm = pd.DataFrame(conf_matrix / np.sum(conf_matrix, axis=1)[:, None], index = [i for i in class_name],
-     #                columns = [i for i in class_name])
-  #  adv_df_cm = pd.DataFrame(Adv_conf_matrix / np.sum(conf_matrix, axis=1)[:, None], index = [i for i in class_name],
-                     #columns = [i for i in class_name])
-    targ_df_cm = pd.DataFrame(Targ_conf_matrix / np.sum(Targ_conf_matrix, axis=1)[:, None], index = [i for i in class_name],
-                     columns = [i for i in class_name])
-    
-    #fig, axs = plt.subplots(1,1, figsize = (12,7))
-
-    '''sn.heatmap(df_cm, annot=True, cmap='Blues', cbar=False, ax=axs[0])
-    axs[0].set_title('Benign Test Confusion Matrix (Normalized)')
-    axs[0].set_xlabel('Predicted')
-    axs[0].set_ylabel('True')'''
-
-    # Plot the third confusion matrix
-    '''sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
-    axs[1].set_title('Targeted Test Confusion Matrix  (Normalized)')
-    axs[1].set_xlabel('Predicted')
-    axs[1].set_ylabel('True')'''
-    plt.figure(figsize=(8, 6))
-    sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.title('Confusion Matrix for Targeted Attacks(Mix-Up)')
-
-
-    plt.tight_layout()
-
-    plt.savefig('Conf_Mat_targ(Mix_Up).png')
-
-    plt.show()
-
+    # Plot confusion matrices
+    plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Targeted Training and Clean Predictions')
+    plot_confusion_matrix(Targeted_conf_matrix, class_names, title='Confusion Matrix for Targeted Training and Targeted Predictions')
 
     state = {
         'net': net.state_dict()
@@ -347,7 +266,6 @@ def test(epoch, test_metrics):
     torch.save(state, './checkpoint/' + file_name)
     print('Model Saved!')
 
-    return test_metrics
 
 def adjust_learning_rate(optimizer, epoch):
     lr = learning_rate
@@ -361,9 +279,10 @@ def adjust_learning_rate(optimizer, epoch):
 for epoch in range(0, 200):
     adjust_learning_rate(optimizer, epoch)
     train_metrics = adversarial_train(epoch, train_metrics)
-    test_metrics = test(epoch, test_metrics)
+    test(epoch)
 
 
 result_df = pd.concat([train_metrics, test_metrics], axis=1)
 
-result_df.to_csv('metrics.csv', sep='\t', index=False)
+result_df.to_csv('Untarg.csv', sep='\t', index=False)
+    

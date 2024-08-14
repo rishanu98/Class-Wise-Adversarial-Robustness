@@ -6,4 +6,4 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:2
 
-python train.py --mode 'AT' --fname 'AT_CCM' --ccm --lambda-1 0.5 --threshold 0.2 
+python train.py --mode 'AT' --fname 'AT_CCM' --ccm --lambda-1 0.5 --threshold 0.2 --epochs 100

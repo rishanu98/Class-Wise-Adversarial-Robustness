@@ -243,11 +243,16 @@ def test(epoch):
             adv_correct += adv_predicted.eq(targets).sum().item()
             UnTarg_predicted.extend(adv_predicted.cpu().numpy())
 
+
+            # Generate random target classes for targeted attack
             # Evaluate on targeted adversarial examples
             y_targ = torch.randint(0, len(class_names), targets.shape, device=device)
+            while torch.any(y_targ.eq(targets)):
+                y_targ = torch.randint(0, len(class_names), targets.shape, device=device)
 
-
+            # PGD attack on inputs to generate adversarial examples
             x_adv_targ = pgd_linf_targeted(net, inputs, y_targ, epsilon, alpha, k, device=device)
+
             targ_outputs = net(x_adv_targ)
             targ_loss += criterion(targ_outputs, y_targ).item()
 

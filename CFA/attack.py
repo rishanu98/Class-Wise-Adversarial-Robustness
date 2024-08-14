@@ -30,6 +30,24 @@ def attack_pgd(model, x, y, eps, alpha, n_iters, dataset='cifar10' ,norm='Linf')
     
     return delta.detach()
 
+
+def pgd_linf_targeted(model, x_natural, y_targ, epsilon, alpha, k, device):
+    x = x_natural.detach()
+    x = x + torch.zeros_like(x).uniform_(-epsilon, epsilon)
+    for i in range(k):
+        x.requires_grad_()
+        with torch.enable_grad():
+            logits = model(x)
+            targeted_labels = torch.zeros(logits.shape[0], dtype=torch.long, device=device).fill_(y_targ[0])
+            loss = F.cross_entropy(logits, targeted_labels)
+        
+        grad = torch.autograd.grad(loss, [x])[0]
+        x = x.detach() + alpha * torch.sign(grad.detach())
+        x = torch.min(torch.max(x, x_natural - epsilon), x_natural + epsilon)
+        x = torch.clamp(x, 0, 1)
+    
+    return x
+
 def cw_attack_pgd(model, x, y, eps, alpha, n_iters,norm='Linf'):
     delta = torch.zeros_like(x).to(x.device)
     base = torch.ones_like(x).to(x.device)

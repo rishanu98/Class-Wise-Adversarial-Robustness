@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import os
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from attack import pgd_loss, cw_pgd_loss, trades_loss, cw_trades_loss, fat_loss, cw_fat_loss
+from attack import pgd_loss, cw_pgd_loss, trades_loss, cw_trades_loss, fat_loss, cw_fat_loss, pgd_linf_targeted
 from utils import dev, normalize_cifar, load_valid_dataset, weight_average
 from model import PreActResNet18
 from resnet import ResNet18
@@ -54,40 +54,56 @@ class CW_log():
         self.N = 0
         self.robust_acc = 0
         self.clean_acc = 0
-        self.cw_robust = torch.zeros(10).to(device)
-        self.cw_clean = torch.zeros(10).to(device)
+        self.cw_robust = torch.zeros(class_num).to(device)
+        self.cw_clean = torch.zeros(class_num).to(device)
         self.class_num = class_num
+        self.clean_correct = []  # List to store correct predictions for clean data
+        self.robust_correct = []  # List to store correct predictions for robust data
     
     def update_clean(self, output, y):
         self.N += len(output)
-        pred = output.max(1)[1]
-        correct = pred == y
-        self.clean_acc += correct.sum()
-
+        clean_pred = output.max(1)[1]
+        clean_correct = clean_pred == y
+        self.clean_acc += clean_correct.sum()
+        
+        # Store correct predictions
+        self.clean_correct.extend(clean_correct)
+        
         for i, c in enumerate(y):
-            if correct[i]:
+            if clean_correct[i]:
                 self.cw_clean[c] += 1
     
     def update_robust(self, output, y):
-        pred = output.max(1)[1]
-        correct = pred == y
-        self.robust_acc += correct.sum()
-
+        robust_pred = output.max(1)[1]
+        robust_correct = robust_pred == y
+        self.robust_acc += robust_correct.sum()
+        
+        # Store correct predictions
+        self.robust_correct.extend(robust_correct)
+        
         for i, c in enumerate(y):
-            if correct[i]:
+            if robust_correct[i]:
                 self.cw_robust[c] += 1
     
     def result(self):
         N = self.N
         m = self.class_num
-        return self.clean_acc/N, self.robust_acc/N, m*self.cw_clean/N, m*self.cw_robust/N
+        clean_correct_array = torch.tensor(self.clean_correct).float().cpu().numpy()
+        robust_correct_array = torch.tensor(self.robust_correct).float().cpu().numpy()
+        return (self.clean_acc/N, 
+                self.robust_acc/N, 
+                m*self.cw_clean/N, 
+                m*self.cw_robust/N,
+                clean_correct_array,  # Return clean_correct values
+                robust_correct_array)  # Return robust_correct values
 
 
 
 def train_epoch(model, loader, opt, device, attack, eps, beta, alpha, n_iters):
     model.train()
+    print('started model training')
     logger = CW_log()
-    loader = tqdm(loader)
+   
     for batch_idx, batch in enumerate(loader):
         x, y = batch
         x, y = x.to(device), y.to(device)
@@ -105,13 +121,14 @@ def train_epoch(model, loader, opt, device, attack, eps, beta, alpha, n_iters):
             break
     return logger.result()
 
-def eval_epoch(model, loader, device, class_name, attack, eps, beta, alpha, n_iters):
+def eval_epoch(model, loader, device, class_name, attack, eps, beta, alpha, n_iters, mode='Test'):
     model.eval()
+    print('Doing Untargeted evaluation mode ' + mode)
     correct = 0
     True_label = []
     Predicted = []
     logger = CW_log()
-    loader = tqdm(loader)
+    
     for batch_idx, batch in enumerate(loader):
         x, y = batch
         x, y = x.to(device), y.to(device)
@@ -130,35 +147,73 @@ def eval_epoch(model, loader, device, class_name, attack, eps, beta, alpha, n_it
 
     return logger.result(), True_label, Predicted
 
-def clean_evaluate(model, test_loader, device, class_name, mode = 'Test'):
-
+def clean_evaluate(model, loader, device, class_names, mode='Test'):
     print('Doing evaluation mode ' + mode)
     model.eval()
 
     correct = 0
-
-
-    all_label = []
-    all_pred = []
+    total = 0
     clean_pred = []
     true_label = []
 
-    for batch_idx, (data, target) in enumerate(test_loader):
+    with torch.no_grad():  # No need to compute gradients during evaluation
+        for batch_idx, (data, target) in enumerate(tqdm(loader, desc="Evaluating")):
+            data, target = data.to(device), target.to(device)
+            total += target.size(0)
 
-        data, target = torch.tensor(data).to(device), torch.tensor(target).to(device)
-        all_label.append(target)
-        true_label.extend(target.cpu().numpy())
+            true_label.extend(target.cpu().numpy())
 
-        ## clean test
-        output = model(data)
-        pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-        add = pred.eq(target.view_as(pred)).sum().item()
-        correct += add
-        model.zero_grad()
-        all_pred.append(pred)
-        clean_pred.extend(pred.cpu().numpy())
-    
+            # Clean test
+            outputs = model(normalize_cifar(data)).detach()
+
+            _, clean_predicted = outputs.max(1)  # Get the index of the max log-probability
+            correct += clean_predicted.eq(target).sum().item()
+            clean_pred.extend(clean_predicted.cpu().numpy())
+
+    accuracy = 100. * correct / total
+    print(f'{mode} Accuracy: {accuracy:.2f}%')
+
     return clean_pred, true_label
+
+def targeted_evaluate(model, loader, device, class_names, attack, eps, alpha, n_iters, mode='Targeted Test'):
+    model.eval()
+    print('Doing Targeted evaluation mode ' + mode)
+    true_labels = []
+    targeted_labels = []
+    targeted_predictions = []
+
+    for batch_idx, (data, target) in enumerate(tqdm(loader, desc="Evaluating Targeted Attack")):
+        data, target = data.to(device), target.to(device)
+
+        # Generate random target classes for targeted attack
+        y_targ = torch.randint(0, len(class_names), target.shape).to(device)
+        #while torch.any(y_targ.eq(target)):
+        #    y_targ = torch.randint(0, len(class_names), target.shape).to(device)
+
+        # Generate adversarial examples
+        x_adv_targ = pgd_linf_targeted(model, data, y_targ, eps, alpha, n_iters, device)
+        
+        # Model inference
+        with torch.no_grad():
+            targ_outputs = model(normalize_cifar(x_adv_targ)).detach()
+            _, targ_predicted = targ_outputs.max(1)
+
+        true_labels.extend(target.cpu().numpy())
+        targeted_labels.extend(y_targ.cpu().numpy())
+        targeted_predictions.extend(targ_predicted.cpu().numpy())
+
+    return true_labels, targeted_labels, targeted_predictions
+
+# Helper function to plot confusion matrix
+def plot_confusion_matrix(conf_matrix, class_names, title):
+    df_cm = pd.DataFrame(conf_matrix / np.sum(conf_matrix, axis=1)[:, None], index=class_names, columns=class_names)
+    plt.figure(figsize=(10, 7))
+    sn.heatmap(df_cm, annot=True, cmap='Blues', cbar=False)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title(title)
+    plt.savefig(f"{title}.png")
+    plt.show()
 
 def lr_schedule(t):
     if t / args.epochs < 0.5:
@@ -227,14 +282,15 @@ if __name__ == '__main__':
     EMA_log, FAWA_log = [], []
     save_threshold = [0, 0, 0] # robust+min_robust, for main, EMA, FAWA
     for epoch in range(epochs):
-        # update learning rate
+       
+    # update learning rate
         if args.model == 'WRN':
             lr = lr_schedule_wrn(epoch)
         else:
             lr = lr_schedule(epoch)
         opt.param_groups[0].update(lr=lr)
-        
-        # train
+    
+    # train
         model.train()
         # ccm
         if epoch >= args.begin:
@@ -243,7 +299,7 @@ if __name__ == '__main__':
             class_eps = (torch.ones(10).to(device) * args.lambda_1 + train_robust) * eps
         else:
             class_eps = torch.ones(10).to(device) * eps
-        
+    
         # ccr
         if args.ccr and epoch >= args.begin:
             for i in range(10):
@@ -278,47 +334,45 @@ if __name__ == '__main__':
             train_result = train_epoch(model, train_loader, opt, device, attack, eps, class_beta, alpha, iteration)
         
         model.eval()
-        # test
         test_result, True_label, Predicted = eval_epoch(model, test_loader, device, class_names, pgd_loss, 8./255., beta, 2./255., 10)
+        if epoch % 10 == 0 or epoch == args.epochs - 1:
+            test_result, True_label, Predicted = eval_epoch(model, test_loader, device, class_names, pgd_loss, 8./255., beta, 2./255., 10)
+            # Extract results
+            clean_accuracy, robust_accuracy, cw_clean, cw_robust, clean_correct, robust_correct = test_result
+            # clean accuracy
+
+            #clean_pred, True_label = clean_evaluate(model, test_loader, device, class_names, mode = 'Test')
+            #clean_conf_matrix = confusion_matrix(True_label, clean_pred)
+            #robust_conf_matrix = confusion_matrix(True_label, Predicted)
+            true_labels_adv, targeted_labels_adv, adv_predictions = targeted_evaluate(model, test_loader, device, class_names, attack, 8./255., alpha, args.attack_iters, mode='Targeted Test')
+            conf_matrix_adv = confusion_matrix(true_labels_adv, adv_predictions)
+
+            #plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training using CFA and Clean Predictions')
+            #plot_confusion_matrix(robust_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training using CFA and Untargeted Predictions')
+            plot_confusion_matrix(conf_matrix_adv, class_names, 'Confusion Matrix for Untargeted Training using CFA and targeted Predictions')
+
+
+        # test
+        #print('Evaluation started')
+        '''# Extract results
+        clean_accuracy, robust_accuracy, cw_clean, cw_robust, clean_correct, robust_correct = test_result
         clean_pred, True_label = clean_evaluate(model, test_loader, device, class_names, mode = 'Test')
 
-        # Clean Confusion Matrix
-        clean_conf_matrix = confusion_matrix(clean_pred, True_label)
-        row_sums = np.sum(clean_conf_matrix, axis=1)
+        print('Now plotting confusion matrix')
+        # Confusion matrices
+        clean_conf_matrix = confusion_matrix(True_label, clean_pred)
+        Untargeted_conf_matrix = confusion_matrix(True_label, robust_correct)
+        #Untargeted_conf_matrix = confusion_matrix(True_label, Predicted)
 
-        # Prevent division by zero
-        row_sums[row_sums == 0] = 1e-10
+        # Plot confusion matrices
+        plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Targeted Training using BAT and Clean Predictions')
+        plot_confusion_matrix(Untargeted_conf_matrix, class_names, title='Confusion Matrix for Targeted Training using BAT and Untargeted Predictions')
 
-        clean_df_cm = pd.DataFrame(clean_conf_matrix / row_sums[:, None], index=[i for i in class_names],
-                           columns=[i for i in class_names])
+        # Plot targeted confusion matrix
+        true_labels_adv, targeted_labels_adv, adv_predictions = targeted_evaluate(model, test_loader, device, class_names, attack, 8./255., alpha, args.attack_iters, mode='Targeted Test')
+        conf_matrix_adv = confusion_matrix(True_label, adv_predictions)
+        plot_confusion_matrix(conf_matrix_adv, class_names, 'Confusion Matrix for Targeted Training using BAT and targeted Predictions')'''
 
-        # CFA Confusion Matrix
-        conf_mat = confusion_matrix(Predicted, True_label)
-        row_sums = np.sum(conf_mat, axis=1)
-
-        # Prevent division by zero
-        row_sums[row_sums == 0] = 1e-10
-
-        targ_df_cm = pd.DataFrame(conf_mat / row_sums[:, None], index=[i for i in class_names],
-                          columns=[i for i in class_names])
-
-        plt.figure(figsize=(12, 6))
-
-        plt.subplot(1, 2, 1)
-        sn.heatmap(clean_df_cm, annot=True, cmap='Blues', cbar=False)
-        plt.xlabel('Predicted')
-        plt.ylabel('True')
-        plt.title('Confusion Matrix for Clean Predictions')
-
-        plt.subplot(1, 2, 2)
-        sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
-        plt.xlabel('True')
-        plt.ylabel('Predicted')
-        plt.title('Confusion Matrix for AT_CCM_PGD')
-
-        plt.tight_layout()
-        plt.savefig('AT_CFA_Confusion_Matrix.png')  
-        plt.show()
     
         # valid
         valid_result, _ , _ = eval_epoch(model, valid_loader, device,class_names, pgd_loss, 8./255., beta, 2./255., 10)

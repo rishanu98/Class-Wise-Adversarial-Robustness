@@ -45,7 +45,7 @@ def pgd_attack(model,
 
     return X_pgd
 
-def pgd_linf(model, X, y, epsilon, alpha  , num_iter, randomize=False):
+def pgd_linf(model, X, y, epsilon, alpha, num_iter, randomize=False):
     """ Construct PGD adversarial examples on the examples X"""
     if randomize:
         delta = torch.rand_like(X, requires_grad=True)
@@ -60,6 +60,40 @@ def pgd_linf(model, X, y, epsilon, alpha  , num_iter, randomize=False):
         delta.data = (delta + alpha*delta.grad.detach().sign()).clamp(-epsilon,epsilon)
         delta.grad.zero_()
     return delta.detach()
+
+def pgd_linf_targ2(model, x_natural, y_targ, epis, alp, k, device):
+    """
+    Perform a PGD targeted attack on the input data x_natural.
+
+    Args:
+    - model (torch.nn.Module): The neural network model to attack.
+    - x_natural (torch.Tensor): The input data.
+    - y_targ (torch.Tensor): The target labels for the attack.
+    - epis (float): The maximum perturbation (epsilon).
+    - alp (float): The step size (alpha).
+    - k (int): The number of iterations.
+    - device (torch.device): The device to perform computations on.
+
+    Returns:
+    - x (torch.Tensor): The adversarial examples.
+    """
+    x = x_natural.detach().clone()
+    x = x + torch.zeros_like(x).uniform_(-epis, epis)
+    x = torch.clamp(x, 0, 1)
+    
+    for i in range(k):
+        x.requires_grad_()
+        with torch.enable_grad():
+            logits = model(x)
+            targeted_labels = torch.zeros(logits.shape[0], dtype=torch.long, device=device).fill_(y_targ[0])
+            loss = F.cross_entropy(logits, targeted_labels)
+       
+        grad = torch.autograd.grad(loss, [x])[0]
+        x = x.detach() + alp * torch.sign(grad.detach())
+        x = torch.min(torch.max(x, x_natural - epis), x_natural + epis)
+        x = torch.clamp(x, 0, 1)
+
+    return x
 
 
 def in_class(predict, label):
@@ -124,6 +158,7 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
 
     correct = 0
     correct_adv = 0
+    correct_targ_adv = 0
     adv_test_loss = 0 
     test_loss = 0 
 
@@ -132,8 +167,10 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
     loss_per_batch =[]
     all_pred = []
     all_pred_adv = []
+    all_targ_pred = []
     clean_pred = []
     adv_pred = []
+    adv_targ_pred = []
     true_label = []
 
     for batch_idx, (data, target) in enumerate(test_loader):
@@ -151,22 +188,32 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
         all_pred.append(pred)
         clean_pred.extend(pred.cpu().numpy())
 
-        ## adv test
-        x_adv = pgd_attack(model, X = data, y = target, **configs)
+        ## adv untargeted test
+        x_adv = pgd_attack(model, X = data, y = target, epsilon=configs['epsilon'], clip_max=configs['clip_max'],clip_min=configs['clip_min'],num_steps=configs['num_steps'], step_size=configs['step_size'])
         output1 = model(x_adv)
         pred1 = output1.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
         add1 = pred1.eq(target.view_as(pred1)).sum().item()
         correct_adv += add1
         all_pred_adv.append(pred1)
         adv_pred.extend(pred1.cpu().numpy())
-    
+
+        # Adversarial targeted test
+        target_classes = torch.randint(0, len(class_name), target.shape).to(device)  # Example of generating random target classes
+        x_adv = pgd_linf_targ2(model, x_natural=data, y_targ=target_classes, epis=configs['epsilon'], alp=configs['step_size'], k=configs['num_steps'], device=device)
+        output2 = model(x_adv)
+        pred2 = output2.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+        correct_targ_adv += pred2.eq(target.view_as(pred2)).sum().item()
+        all_targ_pred.append(pred2)
+        adv_targ_pred.extend(pred2.cpu().numpy())
 
     all_label = torch.cat(all_label).flatten()
     all_pred = torch.cat(all_pred).flatten()
     all_pred_adv = torch.cat(all_pred_adv).flatten()
+    all_targ_pred = torch.cat(all_targ_pred).flatten()
 
     acc = in_class(all_pred, all_label)
     acc_adv = in_class(all_pred_adv, all_label)
+    targ_acc_adv = in_class(all_targ_pred,all_label)
 
     total_clean_error = 1- correct / len(test_loader.dataset)
     total_bndy_error = correct / len(test_loader.dataset) - correct_adv / len(test_loader.dataset)
@@ -180,9 +227,15 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
                      columns = [i for i in class_name])
     
     # Untargetd attack Confusion Matrix
-    Targ_conf_matrix = confusion_matrix(adv_pred, true_label)
+    UnTarg_conf_matrix = confusion_matrix(adv_pred, true_label)
+    Untarg_df_cm = pd.DataFrame(UnTarg_conf_matrix / np.sum(UnTarg_conf_matrix, axis=1)[:, None], index = [i for i in class_name],
+                     columns = [i for i in class_name])
+    
+    # targetd attack Confusion Matrix
+    Targ_conf_matrix = confusion_matrix(adv_targ_pred, true_label)
     targ_df_cm = pd.DataFrame(Targ_conf_matrix / np.sum(Targ_conf_matrix, axis=1)[:, None], index = [i for i in class_name],
                      columns = [i for i in class_name])
+
 
     plt.figure(figsize=(12, 6))
 
@@ -193,7 +246,7 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
     plt.title('Confusion Matrix for Clean Predictions')
 
     plt.subplot(1, 2, 2)
-    sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
+    sn.heatmap(Untarg_df_cm, annot=True, cmap='Blues', cbar=False)
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title('Confusion Matrix for Untargeted Attacks predictions ')
@@ -201,6 +254,15 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
     plt.tight_layout()
 
     plt.savefig('confusion_matrices.png')
+    plt.show()
+
+    # Plot Targeted Attack Confusion Matrix
+    plt.figure(figsize=(9, 7))
+    sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title('Confusion Matrix for Targeted Attacks Predictions')
+    plt.savefig('targeted_confusion_matrix.png')
     plt.show()
 
 

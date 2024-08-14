@@ -25,7 +25,7 @@ file_name = 'pgd_adversarial_training'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 True_label = []
 UnTarg_predicted = []
-clean_pred = []
+targ_clean_pred = []
 
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -61,6 +61,7 @@ class LinfPGDAttack(object):
             x = torch.min(torch.max(x, x_natural - epsilon), x_natural + epsilon)
             x = torch.clamp(x, 0, 1)
         return x
+    
 
 def attack(x, y, model, adversary):
     model_copied = copy.deepcopy(model)
@@ -68,6 +69,23 @@ def attack(x, y, model, adversary):
     adversary.model = model_copied
     adv = adversary.perturb(x, y)
     return adv
+
+def pgd_linf_targeted(model, x_natural, y_targ, epsilon, alpha, k, device):
+    x = x_natural.detach()
+    x = x + torch.zeros_like(x).uniform_(-epsilon, epsilon)
+    for i in range(k):
+        x.requires_grad_()
+        with torch.enable_grad():
+            logits = model(x)
+            targeted_labels = y_targ
+            loss = F.cross_entropy(logits, targeted_labels)
+        
+        grad = torch.autograd.grad(loss, [x])[0]
+        x = x.detach() - alpha * torch.sign(grad.detach())  # Note the '-' for maximizing loss
+        x = torch.min(torch.max(x, x_natural - epsilon), x_natural + epsilon)
+        x = torch.clamp(x, 0, 1)
+    
+    return x
 
 net = ResNet18()
 net = net.to(device)
@@ -88,14 +106,13 @@ def train(epoch):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
 
-        x = adversary.perturb(inputs, targets) #peturbated input
-        adv_outputs = net(x)   # giving perturbated input in the network
-        loss = criterion(adv_outputs, targets)
+        outputs = net(inputs)   # giving perturbated input in the network
+        loss = criterion(outputs, targets)
         loss.backward()
 
         optimizer.step()
         train_loss += loss.item()
-        _, predicted = adv_outputs.max(1)
+        _, predicted = outputs.max(1)
 
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
@@ -105,8 +122,8 @@ def train(epoch):
             print('Current adversarial train accuracy:', str(predicted.eq(targets).sum().item() / targets.size(0)))
             print('Current adversarial train loss:', loss.item())
 
-    print('\nTotal adversarial train accuarcy:', 100. * correct / total)
-    print('Total adversarial train loss:', train_loss)
+    print('\nTotal clean train accuarcy:', 100. * correct / total)
+    print('Total clean train loss:', train_loss)
 
 def test(epoch):
     print('\n[ Test epoch: %d ]' % epoch)
@@ -121,31 +138,39 @@ def test(epoch):
             inputs, targets = inputs.to(device), targets.to(device)
             total += targets.size(0)
 
-            outputs = net(inputs)
-            loss = criterion(outputs, targets)
+            y_targ = torch.randint(0, len(class_names), targets.shape).to(device)
+
+
+            # PGD attack on inputs to generate adversarial examples
+            x_adv_targ = pgd_linf_targeted(net, inputs, y_targ, epsilon, alpha, k, device=device)
+            adv_outputs = net(x_adv_targ)  
+
+            #outputs = net(inputs)
+            loss = criterion(adv_outputs, targets)
             benign_loss += loss.item()
 
-            _, clean_predicted = outputs.max(1)
-            benign_correct += clean_predicted.eq(targets).sum().item()
-            clean_pred.extend(clean_predicted.cpu().numpy())
+            _, adv_predicted = adv_outputs.max(1)
+            adv_correct += adv_predicted.eq(targets).sum().item()
+            targ_clean_pred.extend(adv_predicted.cpu().numpy())
 
-            if batch_idx % 10 == 0:
+            '''if batch_idx % 10 == 0:
                 print('\nCurrent batch:', str(batch_idx))
                 print('Current benign test accuracy:', str(clean_predicted.eq(targets).sum().item() / targets.size(0)))
-                print('Current benign test loss:', loss.item())
+                print('Current benign test loss:', loss.item())'''
 
-            x = adversary.perturb(inputs, targets)
+            '''x = adversary.perturb(inputs, targets)
             adv_outputs = net(x)
             loss = criterion(adv_outputs, targets)
             adv_loss += loss.item()
 
             _, adv_predicted = adv_outputs.max(1)
             adv_correct += adv_predicted.eq(targets).sum().item()
-            UnTarg_predicted.extend(adv_predicted.cpu().numpy())
+            UnTarg_predicted.extend(adv_predicted.cpu().numpy())'''
 
             if batch_idx % 10 == 0:
-                print('Current adversarial test accuracy:', str(adv_predicted.eq(targets).sum().item() / targets.size(0)))
-                print('Current adversarial test loss:', loss.item())
+                print('\nCurrent batch:', str(batch_idx))
+                print('Current targeted adversarial test accuracy:', str(adv_predicted.eq(targets).sum().item() / targets.size(0)))
+                print('Current targeted adversarial test loss:', loss.item())
 
             # Transfering data on cpu to plot confusion matrix
             True_label.extend(targets.cpu().numpy())
@@ -160,12 +185,12 @@ def test(epoch):
     print('Total adversarial test loss:', adv_loss)
 
 # Confusion matrices
-    clean_conf_matrix = confusion_matrix(True_label, clean_pred)
-    Untargeted_conf_matrix = confusion_matrix(True_label, UnTarg_predicted)
+    #clean_conf_matrix = confusion_matrix(True_label, clean_pred)
+    targeted_conf_matrix = confusion_matrix(True_label, targ_clean_pred)
     
     # Plot confusion matrices
-    plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training and Clean Predictions')
-    plot_confusion_matrix(Untargeted_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training and UnTargeted Predictions')
+    #plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training and Clean Predictions')
+    plot_confusion_matrix(targeted_conf_matrix, class_names, title='Confusion Matrix for Clean Training and Targeted Predictions')
     
     state = {
         'net': net.state_dict()

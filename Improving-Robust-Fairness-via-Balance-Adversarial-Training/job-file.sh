@@ -6,4 +6,4 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
-python train_copy.py
+python train.py
