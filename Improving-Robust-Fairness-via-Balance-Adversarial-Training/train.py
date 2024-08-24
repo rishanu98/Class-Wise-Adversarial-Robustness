@@ -175,7 +175,8 @@ def eval_test(model,device, test_loader):
         for (data, target) in test_loader:
             data, target = data.to(device), target.to(device)
             y_targ = torch.randint(0, len(class_names), target.shape).to(device)
-            adv_data = pgd_linf_targ2(model, data, y_targ, epis=args.epsilon, alp=0.01, k=10)
+            mix_x, mix_y = mixup_data(data, y_targ, alpha = 0.2, device='cuda')
+            adv_data = pgd_linf_targ2(model, mix_x, mix_y, epis=args.epsilon, alp=0.01, k=10)
             output = model(adv_data)
             test_loss += F.cross_entropy(output, target, size_average=False).item()
             pred = output.max(1, keepdim=True)[1]
@@ -184,7 +185,7 @@ def eval_test(model,device, test_loader):
             True_label.extend(target.cpu().numpy())
             predicted_label.extend(pred.cpu().numpy())
     test_loss /= len(test_loader.dataset)
-    with open('Results_3.txt', 'a') as file:
+    with open('Results_4.txt', 'a') as file:
         print('Test: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%.\n)'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)),file=file)
@@ -198,12 +199,12 @@ def eval_test(model,device, test_loader):
     sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
     plt.xlabel('Predicted')
     plt.ylabel('True')
-    plt.title('Confusion Matrix for targeted Attacks and targeted testing')
+    plt.title('Confusion Matrix for targeted training with BAT and targeted testing with Mix-up')
 
 
     plt.tight_layout()
 
-    plt.savefig('./RESULTS/Confusion_Matrix_for_targeted Attacks_and_targeted_testing.png')
+    plt.savefig('./RESULTS/Confusion Matrix for targeted training with BAT and targeted testing with Mix-up.png')
 
     plt.show()
 
@@ -234,7 +235,7 @@ def main():
 
         with open('Results_1.txt','a') as file:
             if epoch == 1:
-                print('Results for Targeted Training and Untargeted Testing',file=file)
+                print('Results for Targeted Training and targeted Testing with Mix-up',file=file)
 
         # adversarial training
         train(args, model, device, train_loader, optimizer, epoch)

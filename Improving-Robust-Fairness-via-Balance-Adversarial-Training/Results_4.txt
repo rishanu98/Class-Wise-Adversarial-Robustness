@@ -1,0 +1,306 @@
+Test: Average loss: 2.2758, Accuracy: 1327/10000 (13%.
+)
+Test: Average loss: 2.1723, Accuracy: 2173/10000 (22%.
+)
+Test: Average loss: 2.2267, Accuracy: 1865/10000 (19%.
+)
+Test: Average loss: 2.1501, Accuracy: 2510/10000 (25%.
+)
+Test: Average loss: 2.1274, Accuracy: 2776/10000 (28%.
+)
+Test: Average loss: 2.1094, Accuracy: 2876/10000 (29%.
+)
+Test: Average loss: 2.0942, Accuracy: 2993/10000 (30%.
+)
+Test: Average loss: 2.1611, Accuracy: 2555/10000 (26%.
+)
+Test: Average loss: 2.1399, Accuracy: 2706/10000 (27%.
+)
+Test: Average loss: 2.0327, Accuracy: 3582/10000 (36%.
+)
+Test: Average loss: 2.1522, Accuracy: 2704/10000 (27%.
+)
+Test: Average loss: 2.0229, Accuracy: 3737/10000 (37%.
+)
+Test: Average loss: 2.0635, Accuracy: 3388/10000 (34%.
+)
+Test: Average loss: 2.1146, Accuracy: 3095/10000 (31%.
+)
+Test: Average loss: 2.0386, Accuracy: 3541/10000 (35%.
+)
+Test: Average loss: 2.0587, Accuracy: 3602/10000 (36%.
+)
+Test: Average loss: 2.1103, Accuracy: 3006/10000 (30%.
+)
+Test: Average loss: 1.9825, Accuracy: 3987/10000 (40%.
+)
+Test: Average loss: 1.9846, Accuracy: 4090/10000 (41%.
+)
+Test: Average loss: 1.9572, Accuracy: 4372/10000 (44%.
+)
+Test: Average loss: 1.9634, Accuracy: 4173/10000 (42%.
+)
+Test: Average loss: 1.9797, Accuracy: 4124/10000 (41%.
+)
+Test: Average loss: 2.0814, Accuracy: 3336/10000 (33%.
+)
+Test: Average loss: 1.9665, Accuracy: 4200/10000 (42%.
+)
+Test: Average loss: 1.9960, Accuracy: 4066/10000 (41%.
+)
+Test: Average loss: 2.0049, Accuracy: 4036/10000 (40%.
+)
+Test: Average loss: 2.0190, Accuracy: 3824/10000 (38%.
+)
+Test: Average loss: 2.0166, Accuracy: 3882/10000 (39%.
+)
+Test: Average loss: 1.9290, Accuracy: 4601/10000 (46%.
+)
+Test: Average loss: 2.0754, Accuracy: 3349/10000 (33%.
+)
+Test: Average loss: 1.9544, Accuracy: 4444/10000 (44%.
+)
+Test: Average loss: 2.0156, Accuracy: 3928/10000 (39%.
+)
+Test: Average loss: 1.9846, Accuracy: 4038/10000 (40%.
+)
+Test: Average loss: 2.0939, Accuracy: 3265/10000 (33%.
+)
+Test: Average loss: 1.9992, Accuracy: 3981/10000 (40%.
+)
+Test: Average loss: 1.9397, Accuracy: 4542/10000 (45%.
+)
+Test: Average loss: 2.0646, Accuracy: 3540/10000 (35%.
+)
+Test: Average loss: 1.9685, Accuracy: 4249/10000 (42%.
+)
+Test: Average loss: 1.9606, Accuracy: 4272/10000 (43%.
+)
+Test: Average loss: 1.8896, Accuracy: 4831/10000 (48%.
+)
+Test: Average loss: 2.0379, Accuracy: 3706/10000 (37%.
+)
+Test: Average loss: 1.9766, Accuracy: 4248/10000 (42%.
+)
+Test: Average loss: 1.9165, Accuracy: 4764/10000 (48%.
+)
+Test: Average loss: 1.9936, Accuracy: 4029/10000 (40%.
+)
+Test: Average loss: 1.9353, Accuracy: 4626/10000 (46%.
+)
+Test: Average loss: 1.9847, Accuracy: 4053/10000 (41%.
+)
+Test: Average loss: 2.0018, Accuracy: 3973/10000 (40%.
+)
+Test: Average loss: 1.9713, Accuracy: 4184/10000 (42%.
+)
+Test: Average loss: 2.0469, Accuracy: 3637/10000 (36%.
+)
+Test: Average loss: 1.9613, Accuracy: 4320/10000 (43%.
+)
+Test: Average loss: 2.0707, Accuracy: 3452/10000 (35%.
+)
+Test: Average loss: 1.9103, Accuracy: 4628/10000 (46%.
+)
+Test: Average loss: 1.9842, Accuracy: 4243/10000 (42%.
+)
+Test: Average loss: 1.9038, Accuracy: 4793/10000 (48%.
+)
+Test: Average loss: 1.9194, Accuracy: 4654/10000 (47%.
+)
+Test: Average loss: 1.9802, Accuracy: 4108/10000 (41%.
+)
+Test: Average loss: 2.0863, Accuracy: 3313/10000 (33%.
+)
+Test: Average loss: 1.9421, Accuracy: 4399/10000 (44%.
+)
+Test: Average loss: 2.0254, Accuracy: 3933/10000 (39%.
+)
+Test: Average loss: 2.0958, Accuracy: 3168/10000 (32%.
+)
+Test: Average loss: 1.9169, Accuracy: 4635/10000 (46%.
+)
+Test: Average loss: 2.0157, Accuracy: 3918/10000 (39%.
+)
+Test: Average loss: 2.0489, Accuracy: 3649/10000 (36%.
+)
+Test: Average loss: 1.9751, Accuracy: 4213/10000 (42%.
+)
+Test: Average loss: 2.0720, Accuracy: 3373/10000 (34%.
+)
+Test: Average loss: 1.8998, Accuracy: 4697/10000 (47%.
+)
+Test: Average loss: 2.1267, Accuracy: 3031/10000 (30%.
+)
+Test: Average loss: 2.0525, Accuracy: 3637/10000 (36%.
+)
+Test: Average loss: 1.9605, Accuracy: 4245/10000 (42%.
+)
+Test: Average loss: 1.9904, Accuracy: 4074/10000 (41%.
+)
+Test: Average loss: 1.9511, Accuracy: 4414/10000 (44%.
+)
+Test: Average loss: 1.9942, Accuracy: 3984/10000 (40%.
+)
+Test: Average loss: 2.0646, Accuracy: 3494/10000 (35%.
+)
+Test: Average loss: 2.0627, Accuracy: 3611/10000 (36%.
+)
+Test: Average loss: 1.9398, Accuracy: 4533/10000 (45%.
+)
+Test: Average loss: 1.9951, Accuracy: 4039/10000 (40%.
+)
+Test: Average loss: 1.9992, Accuracy: 4002/10000 (40%.
+)
+Test: Average loss: 1.8854, Accuracy: 5008/10000 (50%.
+)
+Test: Average loss: 1.9377, Accuracy: 4539/10000 (45%.
+)
+Test: Average loss: 1.9349, Accuracy: 4620/10000 (46%.
+)
+Test: Average loss: 1.9366, Accuracy: 4539/10000 (45%.
+)
+Test: Average loss: 2.0172, Accuracy: 3925/10000 (39%.
+)
+Test: Average loss: 1.8924, Accuracy: 4804/10000 (48%.
+)
+Test: Average loss: 2.0055, Accuracy: 3997/10000 (40%.
+)
+Test: Average loss: 1.8839, Accuracy: 4955/10000 (50%.
+)
+Test: Average loss: 1.9854, Accuracy: 4110/10000 (41%.
+)
+Test: Average loss: 1.8820, Accuracy: 4906/10000 (49%.
+)
+Test: Average loss: 2.0922, Accuracy: 3262/10000 (33%.
+)
+Test: Average loss: 2.0172, Accuracy: 3913/10000 (39%.
+)
+Test: Average loss: 2.0362, Accuracy: 3793/10000 (38%.
+)
+Test: Average loss: 1.9030, Accuracy: 4725/10000 (47%.
+)
+Test: Average loss: 1.9368, Accuracy: 4513/10000 (45%.
+)
+Test: Average loss: 1.8871, Accuracy: 4879/10000 (49%.
+)
+Test: Average loss: 1.9577, Accuracy: 4334/10000 (43%.
+)
+Test: Average loss: 1.9346, Accuracy: 4523/10000 (45%.
+)
+Test: Average loss: 1.9866, Accuracy: 4120/10000 (41%.
+)
+Test: Average loss: 1.9598, Accuracy: 4296/10000 (43%.
+)
+Test: Average loss: 2.0780, Accuracy: 3421/10000 (34%.
+)
+Test: Average loss: 1.9576, Accuracy: 4287/10000 (43%.
+)
+Test: Average loss: 1.8274, Accuracy: 5378/10000 (54%.
+)
+Test: Average loss: 1.8964, Accuracy: 4766/10000 (48%.
+)
+Test: Average loss: 1.9342, Accuracy: 4576/10000 (46%.
+)
+Test: Average loss: 1.9125, Accuracy: 4675/10000 (47%.
+)
+Test: Average loss: 1.9668, Accuracy: 4189/10000 (42%.
+)
+Test: Average loss: 1.9594, Accuracy: 4352/10000 (44%.
+)
+Test: Average loss: 1.8967, Accuracy: 4744/10000 (47%.
+)
+Test: Average loss: 2.0374, Accuracy: 3637/10000 (36%.
+)
+Test: Average loss: 1.7940, Accuracy: 5592/10000 (56%.
+)
+Test: Average loss: 1.8311, Accuracy: 5362/10000 (54%.
+)
+Test: Average loss: 1.9693, Accuracy: 4234/10000 (42%.
+)
+Test: Average loss: 1.8792, Accuracy: 4977/10000 (50%.
+)
+Test: Average loss: 2.0027, Accuracy: 3997/10000 (40%.
+)
+Test: Average loss: 1.9382, Accuracy: 4509/10000 (45%.
+)
+Test: Average loss: 1.9289, Accuracy: 4610/10000 (46%.
+)
+Test: Average loss: 2.0179, Accuracy: 3919/10000 (39%.
+)
+Test: Average loss: 1.8831, Accuracy: 5002/10000 (50%.
+)
+Test: Average loss: 1.9939, Accuracy: 4054/10000 (41%.
+)
+Test: Average loss: 2.0084, Accuracy: 3972/10000 (40%.
+)
+Test: Average loss: 1.9118, Accuracy: 4684/10000 (47%.
+)
+Test: Average loss: 1.9213, Accuracy: 4633/10000 (46%.
+)
+Test: Average loss: 1.9540, Accuracy: 4328/10000 (43%.
+)
+Test: Average loss: 1.8494, Accuracy: 5194/10000 (52%.
+)
+Test: Average loss: 1.9331, Accuracy: 4580/10000 (46%.
+)
+Test: Average loss: 1.9986, Accuracy: 4004/10000 (40%.
+)
+Test: Average loss: 1.9459, Accuracy: 4463/10000 (45%.
+)
+Test: Average loss: 1.9208, Accuracy: 4664/10000 (47%.
+)
+Test: Average loss: 2.0148, Accuracy: 3933/10000 (39%.
+)
+Test: Average loss: 1.9072, Accuracy: 4762/10000 (48%.
+)
+Test: Average loss: 1.9955, Accuracy: 4021/10000 (40%.
+)
+Test: Average loss: 1.9681, Accuracy: 4263/10000 (43%.
+)
+Test: Average loss: 1.9716, Accuracy: 4205/10000 (42%.
+)
+Test: Average loss: 2.0100, Accuracy: 3958/10000 (40%.
+)
+Test: Average loss: 1.9725, Accuracy: 4224/10000 (42%.
+)
+Test: Average loss: 1.9673, Accuracy: 4278/10000 (43%.
+)
+Test: Average loss: 1.9695, Accuracy: 4259/10000 (43%.
+)
+Test: Average loss: 1.8915, Accuracy: 4737/10000 (47%.
+)
+Test: Average loss: 2.0666, Accuracy: 3536/10000 (35%.
+)
+Test: Average loss: 1.9466, Accuracy: 4423/10000 (44%.
+)
+Test: Average loss: 1.9997, Accuracy: 3949/10000 (39%.
+)
+Test: Average loss: 1.9934, Accuracy: 4026/10000 (40%.
+)
+Test: Average loss: 1.9001, Accuracy: 4806/10000 (48%.
+)
+Test: Average loss: 1.8538, Accuracy: 5209/10000 (52%.
+)
+Test: Average loss: 2.0383, Accuracy: 3710/10000 (37%.
+)
+Test: Average loss: 1.9246, Accuracy: 4588/10000 (46%.
+)
+Test: Average loss: 1.9064, Accuracy: 4771/10000 (48%.
+)
+Test: Average loss: 1.9271, Accuracy: 4566/10000 (46%.
+)
+Test: Average loss: 1.8721, Accuracy: 5042/10000 (50%.
+)
+Test: Average loss: 1.9344, Accuracy: 4487/10000 (45%.
+)
+Test: Average loss: 1.9659, Accuracy: 4254/10000 (43%.
+)
+Test: Average loss: 2.0430, Accuracy: 3738/10000 (37%.
+)
+Test: Average loss: 1.8846, Accuracy: 4803/10000 (48%.
+)
+Test: Average loss: 2.0235, Accuracy: 3827/10000 (38%.
+)
+Test: Average loss: 1.9165, Accuracy: 4710/10000 (47%.
+)

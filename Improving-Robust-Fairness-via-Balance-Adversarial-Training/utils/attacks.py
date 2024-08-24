@@ -52,7 +52,7 @@ def pgd_linf_targ2(model,x_natural, y_targ, epis, alp, k):
             with torch.enable_grad():
                 logits = model(x)
                 targeted_labels = torch.zeros(logits.shape[0], dtype=torch.long, device=device).fill_(y_targ[0])
-                loss = F.cross_entropy(logits[:, y_targ], targeted_labels)
+                loss = F.cross_entropy(logits, targeted_labels)
        
             grad = torch.autograd.grad(loss, [x])[0]
           
@@ -62,20 +62,19 @@ def pgd_linf_targ2(model,x_natural, y_targ, epis, alp, k):
 
         return x
 
-def mixup_data(x, y, alpha = 0.2, device='cuda'):
+def mixup_data(x, y, alpha=1.0, device='cuda'):
     '''Returns mixed inputs, pairs of targets, and lambda'''
     if alpha > 0:
-        lam = np.random.beta(alpha, alpha).cpu()
+        lam = np.random.beta(alpha, alpha)
     else:
-        lam = np.random.beta(alpha, alpha).cpu()
+        lam = 1
 
     batch_size = x.size()[0]
-
-    if device == 'cuda':
-        index = torch.randperm(batch_size).cuda() # generates a random permutation of indices for shuffling the samples. This is used to select a random sample from the dataset to mix with the current sample.
+    if device=='cuda':
+        index = torch.randperm(batch_size).cuda()
     else:
         index = torch.randperm(batch_size)
-        
+
     mixed_x = lam * x + (1 - lam) * x[index, :]
     y_a, y_b = y, y[index]
     mixed_y = lam * y_a + (1 - lam) * y_b
