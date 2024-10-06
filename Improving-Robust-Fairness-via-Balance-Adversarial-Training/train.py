@@ -94,54 +94,70 @@ def BAT_loss(firstadv_logits, lastclean_logits, target, beta, clean_logits):
     loss_uniform = (loss_uniform_robust + loss_uniform_robust2) 
     return loss_natural, beta * loss_robust, loss_uniform
 
+def mixup_criterion(pred, y_a, y_b, lam):
+    return lam * F.cross_entropy(pred, y_a) + (1 - lam) * F.cross_entropy(pred, y_b)
+
+
 
 def train(args, model, device, train_loader, optimizer, epoch, ema=None):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
+
         if epoch > 500 and epoch % 2 == 0:
             print_flag = True
         else:
             print_flag = False
 
-        '''target_classes = torch.randint(3,7,(target.size(0),)).to(device)   # create a target class tensor which only includes hard classes 
+        # Apply MixUp
+        inputs, targets_a, targets_b, lam = mixup_data(data, target, alpha=0.2, device=device)
 
-        assert target_classes.shape == target.shape, "Shapes do not match"
+        # Forward pass
+        outputs = model(inputs)
 
-        if torch.equal(target, target_classes):
-        
-            mixed_inputs, mixed_labels = mixup_data(data, target, alpha = 0.2, device='cuda')
-        else:
-            mixed_inputs = data
-            mixed_labels = target'''
-    
-        last_clean, lastclean_target, _, _ = stop_to_lastclean(model, data, target, print_flag, step_size=args.step_size,
-                                                                    epsilon=args.epsilon, perturb_steps=args.num_steps,
-                                                                    randominit_type="normal_distribution_randominit", loss_fn='kl') 
+        # Compute the loss using MixUp loss
+        loss_mixup = mixup_criterion(outputs, targets_a, targets_b, lam)
+
+        # Adversarial training and robust loss
+        last_clean, lastclean_target, _, _ = stop_to_lastclean(model, data, target, print_flag,
+                                                               step_size=args.step_size,
+                                                               epsilon=args.epsilon,
+                                                               perturb_steps=args.num_steps,
+                                                               randominit_type="normal_distribution_randominit",
+                                                               loss_fn='kl')
 
         first_adv, _, output_natural, _ = stop_to_firstadv(model, data, target, step_size=args.step_size,
-                                                                    epsilon=args.epsilon, perturb_steps=args.num_steps,
-                                                                    randominit_type="normal_distribution_randominit", loss_fn='kl',tau=1) 
+                                                           epsilon=args.epsilon,
+                                                           perturb_steps=args.num_steps,
+                                                           randominit_type="normal_distribution_randominit",
+                                                           loss_fn='kl', tau=1)
 
         model.train()
         optimizer.zero_grad()
+        
+        # Compute logits for the adversarial and clean data
         lastclean_logits = model(last_clean)
         firstadv_logits = model(first_adv)
         clean_logits = model(output_natural)
 
-
+        # Compute the natural, robust, and uniform losses
         loss_natural, loss_robust, loss_uniform = BAT_loss(firstadv_logits, lastclean_logits, lastclean_target, args.beta, clean_logits)
-        loss = loss_robust + loss_natural + loss_uniform
 
+        # Total loss = natural + robust + uniform + mixup
+        loss = loss_robust + loss_natural + loss_uniform + loss_mixup
+
+        # Backpropagate and optimize
         loss.backward()
         optimizer.step()
 
-        # print progress
+        # Print progress
         if batch_idx % args.log_interval == 0:
             with open('Results_1.txt', 'a') as file:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx * len(data), len(train_loader.dataset),
-                        100. * batch_idx / len(train_loader), loss.item()),file=file)
+                    100. * batch_idx / len(train_loader), loss.item()), file=file)
+
+
 
 
 def eval_train(model, epoch,device, train_loader):
@@ -163,6 +179,100 @@ def eval_train(model, epoch,device, train_loader):
             100. * correct / len(train_loader.dataset)), file=file)
     training_accuracy = correct / len(train_loader.dataset)
     return train_loss, training_accuracy
+
+def plot_confusion_matrix(conf_matrix, class_names, title):
+    df_cm = pd.DataFrame(conf_matrix / np.sum(conf_matrix, axis=1)[:, None], index=[i for i in class_names],
+                         columns=[i for i in class_names])
+
+    plt.figure(figsize=(8, 6))
+    sn.heatmap(df_cm, annot=True, cmap='Blues', cbar=False)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title(title)
+    plt.tight_layout()
+    plt.savefig(title)
+    plt.show()
+
+def eval_test_new(model, device, test_loader):
+    model.eval()
+    clean_correct = 0
+    untargeted_correct = 0
+    targeted_correct = 0
+    total = 0
+
+    true_clean_labels = []
+    clean_prediction = []
+
+    true_targeted_labels = []
+    targeted_prediction = []
+
+    true_untargeted_labels = []
+    untargeted_prediction = []
+
+    with torch.no_grad():
+
+        for batch_idx, (data, targets) in enumerate(test_loader):
+            data, targets = data.to(device), targets.to(device)
+            total+=targets.size(0)
+
+            #mix_x, y_a, y_b, lam = mixup_data(data, targets, alpha = 0.2, device='cuda')
+
+
+            # clean accuracy with mix_up
+            clean_output = model(data)
+            _ , clean_pred = clean_output.max(1)
+            clean_correct += clean_pred.eq(targets).sum().item()
+
+            # save to plot confusion matrix
+            clean_prediction.extend(clean_pred.cpu().numpy())
+            true_clean_labels.extend(targets.cpu().numpy())
+
+            # targeted accuracy with mix_up
+
+            y_targ = torch.randint(0, len(class_names), targets.shape).to(device) # target label generation for targeted accuracy
+            adv_data = pgd_linf_targ2(model, data, y_targ, epis=args.epsilon, alp=0.01, k=10)
+            adv_output = model(adv_data)
+
+            _, predicted_targeted = adv_output.max(1)
+            targeted_correct += predicted_targeted.eq(y_targ).sum().item()
+            targeted_prediction.extend(predicted_targeted.cpu().numpy())
+
+            #Untargeted accuracy with mix_up
+            untarg_adv_data = pgd_linf(model, data, targets, epsilon=0.031, alpha=0.01, num_iter=10, randomize=False)
+            untargeted_adv_output = model(untarg_adv_data + data)
+
+            _, predicted_untargeted = untargeted_adv_output.max(1)
+            untargeted_correct += predicted_untargeted.eq(targets).sum().item()
+            untargeted_prediction.extend(predicted_untargeted.cpu().numpy())
+
+            if batch_idx % 10 == 0:
+                print(f'Batch {batch_idx}/{len(test_loader)}:')
+                print(f'  Clean Accuracy: {100. * clean_correct / total:.2f}%')
+                print(f'  Targeted Attack Accuracy: {100. * targeted_correct / total:.2f}%')
+                print(f'  Untargeted Attack Accuracy: {100. * untargeted_correct / total:.2f}%')
+
+    clean_acc = 100. * clean_correct/total
+    targeted_acc = 100. * targeted_correct/total
+    untargeted_acc = 100. * untargeted_correct/total
+
+    print(f'Final Clean Accuracy: {100. * clean_acc / total:.2f}%')
+    print(f'Final Targeted Attack Accuracy: {100. * targeted_acc / total:.2f}%')
+    print(f'Final Untargeted Attack Accuracy: {100. * untargeted_acc / total:.2f}%')
+
+    # plot the confusion matrix
+    clean_conf_matrix = confusion_matrix(true_clean_labels, clean_prediction)
+    plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for targeted training with BAT and clean testing with Mix-up')
+
+    # Plot confusion matrix for targeted attack predictions
+    targeted_conf_matrix = confusion_matrix(true_clean_labels, targeted_prediction)
+    plot_confusion_matrix(targeted_conf_matrix, class_names, title='Confusion Matrix for targeted training with BAT and targeted testing with Mix-up')
+
+    # Plot confusion matrix for untargeted attack predictions
+    untargeted_conf_matrix = confusion_matrix(true_clean_labels, untargeted_prediction)
+    plot_confusion_matrix(untargeted_conf_matrix, class_names, title='Confusion Matrix for targeted training with BAT and Untargeted testing with Mix-up')
+
+    return clean_acc, targeted_acc, untargeted_acc
+
 
 
 def eval_test(model,device, test_loader):
@@ -233,7 +343,7 @@ def main():
         # adjust learning rate for SGD
         adjust_learning_rate(optimizer, epoch)
 
-        with open('Results_1.txt','a') as file:
+        with open('Results_5.txt','a') as file:
             if epoch == 1:
                 print('Results for Targeted Training and targeted Testing with Mix-up',file=file)
 
@@ -241,10 +351,10 @@ def main():
         train(args, model, device, train_loader, optimizer, epoch)
 
         # evaluation on natural examples
-        with open('Results_1.txt','a') as file:
+        with open('Results_5.txt','a') as file:
             print('================================================================',file=file)
             eval_train(model, epoch,device, train_loader)
-            eval_test(model,device, test_loader)
+            eval_test_new(model,device, test_loader)
             print('================================================================',file=file)
 
         # save checkpoint

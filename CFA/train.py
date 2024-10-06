@@ -25,7 +25,7 @@ def get_args():
     parser.add_argument('--lr_max', default=0.1, type=float)
     parser.add_argument('--mode', default='TRADES', type=str, choices=['AT', 'TRADES', 'FAT'])
 
-    parser.add_argument('--epsilon', default=8, type=int)
+    parser.add_argument('--epsilon', default=8, type=float)
     parser.add_argument('--attack-iters', default=10, type=int)
     parser.add_argument('--pgd-alpha', default=2, type=int)
     parser.add_argument('--norm', default='Linf', type=str)
@@ -181,26 +181,25 @@ def targeted_evaluate(model, loader, device, class_names, attack, eps, alpha, n_
     true_labels = []
     targeted_labels = []
     targeted_predictions = []
-
-    for batch_idx, (data, target) in enumerate(tqdm(loader, desc="Evaluating Targeted Attack")):
-        data, target = data.to(device), target.to(device)
+    with torch.no_grad():
+        for batch_idx, (data, target) in enumerate(tqdm(loader, desc="Evaluating Targeted Attack")):
+            data, target = data.to(device), target.to(device)
 
         # Generate random target classes for targeted attack
-        y_targ = torch.randint(0, len(class_names), target.shape).to(device)
-        #while torch.any(y_targ.eq(target)):
-        #    y_targ = torch.randint(0, len(class_names), target.shape).to(device)
+            y_targ = torch.randint(0, len(class_names), target.shape).to(device)
+
 
         # Generate adversarial examples
-        x_adv_targ = pgd_linf_targeted(model, data, y_targ, eps, alpha, n_iters, device)
+            x_adv_targ = pgd_linf_targeted(model, data, y_targ, eps, alpha, n_iters, device)
         
         # Model inference
-        with torch.no_grad():
+    
             targ_outputs = model(normalize_cifar(x_adv_targ)).detach()
             _, targ_predicted = targ_outputs.max(1)
 
-        true_labels.extend(target.cpu().numpy())
-        targeted_labels.extend(y_targ.cpu().numpy())
-        targeted_predictions.extend(targ_predicted.cpu().numpy())
+            true_labels.extend(target.cpu().numpy())
+            targeted_labels.extend(y_targ.cpu().numpy())
+            targeted_predictions.extend(targ_predicted.cpu().numpy())
 
     return true_labels, targeted_labels, targeted_predictions
 
@@ -344,7 +343,7 @@ if __name__ == '__main__':
             #clean_pred, True_label = clean_evaluate(model, test_loader, device, class_names, mode = 'Test')
             #clean_conf_matrix = confusion_matrix(True_label, clean_pred)
             #robust_conf_matrix = confusion_matrix(True_label, Predicted)
-            true_labels_adv, targeted_labels_adv, adv_predictions = targeted_evaluate(model, test_loader, device, class_names, attack, 8./255., alpha, args.attack_iters, mode='Targeted Test')
+            true_labels_adv, targeted_labels_adv, adv_predictions = targeted_evaluate(model, test_loader, device, class_names, pgd_loss, 8./255., alpha, args.attack_iters, mode='Targeted Test')
             conf_matrix_adv = confusion_matrix(true_labels_adv, adv_predictions)
 
             #plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training using CFA and Clean Predictions')

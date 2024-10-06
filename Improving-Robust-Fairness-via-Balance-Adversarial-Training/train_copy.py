@@ -208,6 +208,98 @@ def eval_test(model,device, test_loader):
 
     return test_loss, test_accuracy
 
+def plot_confusion_matrix(conf_matrix, class_names, title):
+    df_cm = pd.DataFrame(conf_matrix / np.sum(conf_matrix, axis=1)[:, None], index=[i for i in class_names],
+                         columns=[i for i in class_names])
+
+    plt.figure(figsize=(8, 6))
+    sn.heatmap(df_cm, annot=True, cmap='Blues', cbar=False)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title(title)
+    plt.tight_layout()
+    plt.savefig(title)
+    plt.show()
+
+def eval_test_new(model, device, test_loader):
+    model.eval()
+    clean_correct = 0
+    untargeted_correct = 0
+    targeted_correct = 0
+    total = 0
+
+    true_clean_labels = []
+    clean_prediction = []
+
+    true_targeted_labels = []
+    targeted_prediction = []
+
+    true_untargeted_labels = []
+    untargeted_prediction = []
+
+    with torch.no_grad():
+
+        for batch_idx, (data, targets) in enumerate(test_loader):
+            data, targets = data.to(device), targets.to(device)
+            total+=targets.size(0)
+
+            #mix_x, y_a, y_b, lam = mixup_data(data, targets, alpha = 0.2, device='cuda')
+
+
+            # clean accuracy with mix_up
+            clean_output = model(data)
+            _ , clean_pred = clean_output.max(1)
+            clean_correct += clean_pred.eq(targets).sum().item()
+
+            # save to plot confusion matrix
+            clean_prediction.extend(clean_pred.cpu().numpy())
+            true_clean_labels.extend(targets.cpu().numpy())
+
+            # targeted accuracy with mix_up
+
+            y_targ = torch.randint(0, len(class_names), targets.shape).to(device) # target label generation for targeted accuracy
+            adv_data = pgd_linf_targ2(model, data, y_targ, epis=args.epsilon, alp=0.01, k=10)
+            adv_output = model(adv_data)
+
+            _, predicted_targeted = adv_output.max(1)
+            targeted_correct += predicted_targeted.eq(y_targ).sum().item()
+            targeted_prediction.extend(predicted_targeted.cpu().numpy())
+
+            #Untargeted accuracy with mix_up
+            untarg_adv_data = pgd_linf(model, data, targets, epsilon=0.031, alpha=0.01, num_iter=10, randomize=False)
+            untargeted_adv_output = model(untarg_adv_data + data)
+
+            _, predicted_untargeted = untargeted_adv_output.max(1)
+            untargeted_correct += predicted_untargeted.eq(targets).sum().item()
+            untargeted_prediction.extend(predicted_untargeted.cpu().numpy())
+
+            if batch_idx % 10 == 0:
+                print(f'Batch {batch_idx}/{len(test_loader)}:')
+                print(f'  Clean Accuracy: {100. * clean_correct / total:.2f}%')
+                print(f'  Targeted Attack Accuracy: {100. * targeted_correct / total:.2f}%')
+                print(f'  Untargeted Attack Accuracy: {100. * untargeted_correct / total:.2f}%')
+
+    clean_acc = 100. * clean_correct/total
+    targeted_acc = 100. * targeted_correct/total
+    untargeted_acc = 100. * untargeted_correct/total
+
+    print(f'Final Clean Accuracy: {100. * clean_acc / total:.2f}%')
+    print(f'Final Targeted Attack Accuracy: {100. * targeted_acc / total:.2f}%')
+    print(f'Final Untargeted Attack Accuracy: {100. * untargeted_acc / total:.2f}%')
+
+    # plot the confusion matrix
+    clean_conf_matrix = confusion_matrix(true_clean_labels, clean_prediction)
+    plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for targeted training with BAT and clean testing')
+
+    # Plot confusion matrix for targeted attack predictions
+    targeted_conf_matrix = confusion_matrix(true_clean_labels, targeted_prediction)
+    plot_confusion_matrix(targeted_conf_matrix, class_names, title='Confusion Matrix for targeted training with BAT and targeted testing')
+    # Plot confusion matrix for untargeted attack predictions
+    untargeted_conf_matrix = confusion_matrix(true_clean_labels, untargeted_prediction)
+    plot_confusion_matrix(untargeted_conf_matrix, class_names, title='Confusion Matrix for targeted training with BAT and Untargeted testing')
+
+    return clean_acc, targeted_acc, untargeted_acc
+
 
 def adjust_learning_rate(optimizer, epoch):
     """decrease the learning rate"""
@@ -239,10 +331,10 @@ def main():
         train(args, model, device, train_loader, optimizer, epoch)
 
         # evaluation on natural examples
-        with open('Results_2.txt','a') as file:
+        with open('Results_6.txt','a') as file:
             print('================================================================',file=file)
             eval_train(model, epoch,device, train_loader)
-            eval_test(model,device, test_loader)
+            eval_test_new(model,device, test_loader)
             print('================================================================',file=file)
 
         # save checkpoint

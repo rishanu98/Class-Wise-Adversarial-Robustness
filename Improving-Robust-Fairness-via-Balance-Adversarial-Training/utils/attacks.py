@@ -77,6 +77,6 @@ def mixup_data(x, y, alpha=1.0, device='cuda'):
 
     mixed_x = lam * x + (1 - lam) * x[index, :]
     y_a, y_b = y, y[index]
-    mixed_y = lam * y_a + (1 - lam) * y_b
-    return mixed_x, mixed_y
+    #mixed_y = lam * y_a + (1 - lam) * y_b
+    return mixed_x, y_a, y_b, lam
     

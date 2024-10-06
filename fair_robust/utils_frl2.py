@@ -61,38 +61,21 @@ def pgd_linf(model, X, y, epsilon, alpha, num_iter, randomize=False):
         delta.grad.zero_()
     return delta.detach()
 
-def pgd_linf_targ2(model, x_natural, y_targ, epis, alp, k, device):
-    """
-    Perform a PGD targeted attack on the input data x_natural.
-
-    Args:
-    - model (torch.nn.Module): The neural network model to attack.
-    - x_natural (torch.Tensor): The input data.
-    - y_targ (torch.Tensor): The target labels for the attack.
-    - epis (float): The maximum perturbation (epsilon).
-    - alp (float): The step size (alpha).
-    - k (int): The number of iterations.
-    - device (torch.device): The device to perform computations on.
-
-    Returns:
-    - x (torch.Tensor): The adversarial examples.
-    """
-    x = x_natural.detach().clone()
-    x = x + torch.zeros_like(x).uniform_(-epis, epis)
-    x = torch.clamp(x, 0, 1)
-    
+def pgd_linf_targeted(model, x_natural, y_targ, epsilon, alpha, k, device):
+    x = x_natural.detach()
+    x = x + torch.zeros_like(x).uniform_(-epsilon, epsilon)
     for i in range(k):
         x.requires_grad_()
         with torch.enable_grad():
             logits = model(x)
             targeted_labels = torch.zeros(logits.shape[0], dtype=torch.long, device=device).fill_(y_targ[0])
             loss = F.cross_entropy(logits, targeted_labels)
-       
+        
         grad = torch.autograd.grad(loss, [x])[0]
-        x = x.detach() + alp * torch.sign(grad.detach())
-        x = torch.min(torch.max(x, x_natural - epis), x_natural + epis)
+        x = x.detach() + alpha * torch.sign(grad.detach())
+        x = torch.min(torch.max(x, x_natural - epsilon), x_natural + epsilon)
         x = torch.clamp(x, 0, 1)
-
+    
     return x
 
 
@@ -160,7 +143,7 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
     correct_adv = 0
     correct_targ_adv = 0
     adv_test_loss = 0 
-    test_loss = 0 
+    total = 0 
 
 
     all_label = []
@@ -178,6 +161,7 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
         data, target = torch.tensor(data).to(device), torch.tensor(target).to(device)
         all_label.append(target)
         true_label.extend(target.cpu().numpy())
+        total += target.size(0)
 
         ## clean test
         output = model(data)
@@ -186,24 +170,29 @@ def evaluate(model, test_loader, configs, device, class_name, mode = 'Test'):
         correct += add
         model.zero_grad()
         all_pred.append(pred)
+        print(f'Total clean accuracy {correct/total}')
         clean_pred.extend(pred.cpu().numpy())
 
         ## adv untargeted test
-        x_adv = pgd_attack(model, X = data, y = target, epsilon=configs['epsilon'], clip_max=configs['clip_max'],clip_min=configs['clip_min'],num_steps=configs['num_steps'], step_size=configs['step_size'])
-        output1 = model(x_adv)
+
+        x_adv = pgd_linf(model, X = data, y = target, epsilon=configs['epsilon'], alpha=configs['step_size'], num_iter=configs['num_steps'], randomize=False)
+        #x_adv = pgd_attack(model, X = data, y = target, epsilon=configs['epsilon'], clip_max=configs['clip_max'],clip_min=configs['clip_min'],num_steps=configs['num_steps'], step_size=configs['step_size'])
+        output1 = model(data+x_adv)
         pred1 = output1.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
         add1 = pred1.eq(target.view_as(pred1)).sum().item()
         correct_adv += add1
         all_pred_adv.append(pred1)
+        print(f'Total untargeted accuracy {correct_adv/total}')
         adv_pred.extend(pred1.cpu().numpy())
 
         # Adversarial targeted test
         target_classes = torch.randint(0, len(class_name), target.shape).to(device)  # Example of generating random target classes
-        x_adv = pgd_linf_targ2(model, x_natural=data, y_targ=target_classes, epis=configs['epsilon'], alp=configs['step_size'], k=configs['num_steps'], device=device)
+        x_adv = pgd_linf_targeted(model, x_natural=data, y_targ=target_classes, epsilon=configs['epsilon'], alpha=configs['step_size'], k=configs['num_steps'], device=device)
         output2 = model(x_adv)
         pred2 = output2.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
         correct_targ_adv += pred2.eq(target.view_as(pred2)).sum().item()
         all_targ_pred.append(pred2)
+        print(f'Total Targeted accuracy {correct_targ_adv/total}')
         adv_targ_pred.extend(pred2.cpu().numpy())
 
     all_label = torch.cat(all_label).flatten()
