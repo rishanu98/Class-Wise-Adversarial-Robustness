@@ -6,4 +6,4 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
-python train_copy.py --mode 'AT' --fname 'AT_CCM' --ccm --lambda-1 0.5 --threshold 0.2 
+python train_copy.py --mode 'AT' --fname 'AT_CCM_Normalized' --epsilon 0.0313 --ccm --lambda-1 0.5 --threshold 0.2 --epochs 100

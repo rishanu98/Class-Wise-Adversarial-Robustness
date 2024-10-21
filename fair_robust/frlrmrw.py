@@ -12,7 +12,7 @@ import torch
 import torch.optim as optim
 
 
-
+file_name = 'frl_train'
 
 def main(args):
 
@@ -77,6 +77,13 @@ def main(args):
             report = np.array(REPORT)
             np.savetxt('Report2_frlrmrw_test_' + args.model + '_' + str(args.seed) + '_' + str(args.rate1) + str(args.rate2) + '_' + str(
                 args.bound0) + '_' + str(args.bound1) + '_' + str(args.lim) + '.txt', report)
+            state = {
+                'net' : h_net.state_dict()
+            }
+            if not os.path.isdir('./Checkpoint'):
+                os.mkdir('Checkpoint')
+            torch.save(state,'./Checkpoint/'+ file_name)
+            print('Model')
 
         if now_epoch % 40 == 0:
             rate1 = rate1 / 2

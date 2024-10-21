@@ -42,7 +42,7 @@ def pgd_linf_targeted(model, x_natural, y_targ, epsilon, alpha, k, device):
             loss = F.cross_entropy(logits, targeted_labels)
         
         grad = torch.autograd.grad(loss, [x])[0]
-        x = x.detach() + alpha * torch.sign(grad.detach())
+        x = x.detach() - alpha * torch.sign(grad.detach())
         x = torch.min(torch.max(x, x_natural - epsilon), x_natural + epsilon)
         x = torch.clamp(x, 0, 1)
     

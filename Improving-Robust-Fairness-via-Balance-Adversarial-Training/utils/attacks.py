@@ -56,7 +56,7 @@ def pgd_linf_targ2(model,x_natural, y_targ, epis, alp, k):
        
             grad = torch.autograd.grad(loss, [x])[0]
           
-            x = x.detach() + alp * torch.sign(grad.detach())
+            x = x.detach() - alp * torch.sign(grad.detach())
             x = torch.min(torch.max(x, x_natural - epis), x_natural + epis)
             x = torch.clamp(x, 0, 1)
 

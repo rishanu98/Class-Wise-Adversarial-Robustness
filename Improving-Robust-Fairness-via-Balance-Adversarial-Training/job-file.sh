@@ -6,4 +6,4 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 
-python train.py
+python train.py --model-dir 'BAT_Mix_training'

@@ -49,7 +49,7 @@ parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
 parser.add_argument('--log-interval', type=int, default=100, metavar='N',
                     help='how many batches to wait before logging training status')
-parser.add_argument('--model-dir', default='./save_model/resnet_uniform_trades_like_fat',
+parser.add_argument('--model-dir', default='./save_model/BAT',
                     help='directory of model for saving checkpoint')
 parser.add_argument('--save-freq', '-s', default=1, type=int, metavar='N',
                     help='save frequency')
@@ -58,8 +58,8 @@ args = parser.parse_args()
 
 # settings
 model_dir = args.model_dir
-if not os.path.exists(model_dir):
-    os.makedirs(model_dir)
+#if not os.path.exists(model_dir):
+#    os.makedirs(model_dir)
 use_cuda = not args.no_cuda and torch.cuda.is_available()
 torch.manual_seed(args.seed)
 device = torch.device("cuda" if use_cuda else "cpu")
@@ -356,13 +356,19 @@ def main():
             eval_train(model, epoch,device, train_loader)
             eval_test_new(model,device, test_loader)
             print('================================================================',file=file)
-
+        state = {
+        'net': model.state_dict()
+        }
+        if not os.path.isdir('./save_model/BAT_Mix-up/'):
+            os.mkdir('./save_model/BAT_Mix-up/')
+        torch.save(state, './save_model/BAT_Mix-up/' + model_dir)
+        print('Model Saved!')
         # save checkpoint
         if epoch % args.save_freq == 0:
-            torch.save(model.module.state_dict(),
-                       os.path.join(model_dir, 'model-wideres-epoch{}.pt'.format(epoch)))
+            torch.save(model.state_dict(),
+                       os.path.join(model_dir, 'model-res-epoch{}.pt'.format(epoch)))
             torch.save(optimizer.state_dict(),
-                       os.path.join(model_dir, 'opt-wideres-checkpoint_epoch{}.tar'.format(epoch)))
+                       os.path.join(model_dir, 'opt-res-checkpoint_epoch{}.tar'.format(epoch)))
 
 
 if __name__ == '__main__':

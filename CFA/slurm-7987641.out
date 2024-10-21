@@ -1,9 +1,0 @@
-usage: train.py [-h] [--batch-size BATCH_SIZE] [--epochs EPOCHS]
-                [--model {PRN,WRN,RES18}] [--lr_max LR_MAX]
-                [--mode {AT,TRADES,FAT}] [--epsilon EPSILON]
-                [--attack-iters ATTACK_ITERS] [--pgd-alpha PGD_ALPHA]
-                [--norm NORM] [--beta BETA] [--tau TAU] [--fname FNAME]
-                [--device DEVICE] [--ccm] [--ccr] [--lambda-1 LAMBDA_1]
-                [--lambda-2 LAMBDA_2] [--begin BEGIN]
-                [--decay-rate DECAY_RATE] [--threshold THRESHOLD] [--debug]
-train.py: error: argument --epsilon: invalid int value: '0.0313'

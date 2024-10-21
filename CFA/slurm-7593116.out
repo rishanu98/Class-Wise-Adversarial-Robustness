@@ -1,547 +1,0 @@
-Files already downloaded and verified
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 43.27it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 43.26it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 43.33it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 43.42it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 43.49it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 43.54it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 43.56it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 43.59it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 43.56it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 43.56it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 43.46it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 43.41it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 43.41it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 43.42it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 43.38it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 43.88it/s]
-Test Accuracy: 31.80%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 42.80it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 43.20it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 43.37it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 43.32it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 43.35it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 43.37it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 43.45it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 43.45it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 43.45it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 43.41it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 43.48it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 43.36it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 43.41it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 43.30it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 43.35it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 43.82it/s]
-Test Accuracy: 65.35%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 42.93it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 42.98it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 42.96it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 42.95it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 42.92it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 42.95it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 43.02it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 43.02it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 43.09it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 43.10it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 43.09it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 43.10it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 43.00it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 43.02it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 43.03it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 43.46it/s]
-Test Accuracy: 69.71%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 42.56it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 42.65it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 42.65it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 42.73it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 42.77it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 42.81it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 42.83it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 42.87it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 42.91it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 42.87it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 42.69it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 42.78it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 42.80it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 42.76it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 42.76it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 43.21it/s]
-Test Accuracy: 73.75%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 43.12it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 43.13it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 43.15it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 43.16it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 43.15it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 43.09it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 43.06it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 43.06it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 43.09it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 43.08it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 43.02it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 42.98it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 43.05it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 43.08it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 43.10it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 43.52it/s]
-Test Accuracy: 73.27%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 42.52it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 42.67it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 42.75it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 42.82it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 42.86it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 42.85it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 42.75it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 42.66it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 42.66it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 42.68it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 42.70it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 42.74it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 42.80it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 42.74it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 42.72it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 43.14it/s]
-Test Accuracy: 79.71%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 42.69it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 42.76it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 42.71it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 42.76it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 42.78it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 42.79it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 42.85it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 42.79it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 42.80it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 42.77it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 42.76it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 42.80it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 42.82it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 42.81it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 42.82it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 43.22it/s]
-Test Accuracy: 82.01%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 42.51it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 42.67it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 42.84it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 42.51it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 42.53it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 42.57it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 42.70it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 42.63it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 42.64it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 42.63it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 42.66it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 42.45it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 42.51it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 42.54it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 42.59it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 43.04it/s]
-Test Accuracy: 82.38%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 42.55it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 42.50it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 42.35it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 42.55it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 42.36it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 42.38it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 42.39it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 42.42it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 42.47it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 42.33it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 42.45it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 42.45it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 42.44it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 42.35it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 42.49it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 42.88it/s]
-Test Accuracy: 84.17%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 42.26it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 42.46it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 42.61it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 42.64it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 42.48it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 42.55it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 42.55it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 42.56it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 42.59it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 42.61it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 42.62it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 42.65it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 42.67it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 42.68it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 42.70it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 43.05it/s]
-Test Accuracy: 84.37%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-started model training
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing evaluation mode Test
-Evaluating:   0%|          | 0/79 [00:00<?, ?it/s]Evaluating:   6%|▋         | 5/79 [00:00<00:01, 42.37it/s]Evaluating:  13%|█▎        | 10/79 [00:00<00:01, 42.60it/s]Evaluating:  19%|█▉        | 15/79 [00:00<00:01, 42.70it/s]Evaluating:  25%|██▌       | 20/79 [00:00<00:01, 42.32it/s]Evaluating:  32%|███▏      | 25/79 [00:00<00:01, 42.44it/s]Evaluating:  38%|███▊      | 30/79 [00:00<00:01, 42.47it/s]Evaluating:  44%|████▍     | 35/79 [00:00<00:01, 42.53it/s]Evaluating:  51%|█████     | 40/79 [00:00<00:00, 42.55it/s]Evaluating:  57%|█████▋    | 45/79 [00:01<00:00, 42.54it/s]Evaluating:  63%|██████▎   | 50/79 [00:01<00:00, 42.55it/s]Evaluating:  70%|██████▉   | 55/79 [00:01<00:00, 42.36it/s]Evaluating:  76%|███████▌  | 60/79 [00:01<00:00, 42.43it/s]Evaluating:  82%|████████▏ | 65/79 [00:01<00:00, 42.40it/s]Evaluating:  89%|████████▊ | 70/79 [00:01<00:00, 42.46it/s]Evaluating:  95%|█████████▍| 75/79 [00:01<00:00, 42.55it/s]Evaluating: 100%|██████████| 79/79 [00:01<00:00, 42.93it/s]
-train.py:210: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`).
-  plt.figure(figsize=(10, 7))
-Test Accuracy: 82.55%
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test
-Doing Untargeted evaluation mode Test

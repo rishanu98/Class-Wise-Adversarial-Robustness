@@ -25,7 +25,7 @@ def get_args():
     parser.add_argument('--lr_max', default=0.1, type=float)
     parser.add_argument('--mode', default='TRADES', type=str, choices=['AT', 'TRADES', 'FAT'])
 
-    parser.add_argument('--epsilon', default=8, type=int)
+    parser.add_argument('--epsilon', default=8, type=float)
     parser.add_argument('--attack-iters', default=10, type=int)
     parser.add_argument('--pgd-alpha', default=2, type=int)
     parser.add_argument('--norm', default='Linf', type=str)
@@ -54,38 +54,54 @@ class CW_log():
         self.N = 0
         self.robust_acc = 0
         self.clean_acc = 0
-        self.cw_robust = torch.zeros(10).to(device)
-        self.cw_clean = torch.zeros(10).to(device)
+        self.cw_robust = torch.zeros(class_num).to(device)
+        self.cw_clean = torch.zeros(class_num).to(device)
         self.class_num = class_num
+        self.clean_correct = []  # List to store correct predictions for clean data
+        self.robust_correct = []  # List to store correct predictions for robust data
     
     def update_clean(self, output, y):
         self.N += len(output)
-        pred = output.max(1)[1]
-        correct = pred == y
-        self.clean_acc += correct.sum()
-
+        clean_pred = output.max(1)[1]
+        clean_correct = clean_pred == y
+        self.clean_acc += clean_correct.sum()
+        
+        # Store correct predictions
+        self.clean_correct.extend(clean_correct)
+        
         for i, c in enumerate(y):
-            if correct[i]:
+            if clean_correct[i]:
                 self.cw_clean[c] += 1
     
     def update_robust(self, output, y):
-        pred = output.max(1)[1]
-        correct = pred == y
-        self.robust_acc += correct.sum()
-
+        robust_pred = output.max(1)[1]
+        robust_correct = robust_pred == y
+        self.robust_acc += robust_correct.sum()
+        
+        # Store correct predictions
+        self.robust_correct.extend(robust_correct)
+        
         for i, c in enumerate(y):
-            if correct[i]:
+            if robust_correct[i]:
                 self.cw_robust[c] += 1
     
     def result(self):
         N = self.N
         m = self.class_num
-        return self.clean_acc/N, self.robust_acc/N, m*self.cw_clean/N, m*self.cw_robust/N
+        clean_correct_array = torch.tensor(self.clean_correct).float().cpu().numpy()
+        robust_correct_array = torch.tensor(self.robust_correct).float().cpu().numpy()
+        return (self.clean_acc/N, 
+                self.robust_acc/N, 
+                m*self.cw_clean/N, 
+                m*self.cw_robust/N,
+                clean_correct_array,  # Return clean_correct values
+                robust_correct_array)  # Return robust_correct values
 
 
 
 def train_epoch(model, loader, opt, device, attack, eps, beta, alpha, n_iters):
     model.train()
+    print('started model training')
     logger = CW_log()
    
     for batch_idx, batch in enumerate(loader):
@@ -148,7 +164,7 @@ def clean_evaluate(model, loader, device, class_names, mode='Test'):
             true_label.extend(target.cpu().numpy())
 
             # Clean test
-            outputs = model(data)
+            outputs = model(normalize_cifar(data)).detach()
 
             _, clean_predicted = outputs.max(1)  # Get the index of the max log-probability
             correct += clean_predicted.eq(target).sum().item()
@@ -165,18 +181,20 @@ def targeted_evaluate(model, loader, device, class_names, attack, eps, alpha, n_
     true_labels = []
     targeted_labels = []
     targeted_predictions = []
-
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(tqdm(loader, desc="Evaluating Targeted Attack")):
             data, target = data.to(device), target.to(device)
 
-            # Generate random target classes for targeted attack
+        # Generate random target classes for targeted attack
             y_targ = torch.randint(0, len(class_names), target.shape).to(device)
-            while torch.any(y_targ.eq(target)):
-                y_targ = torch.randint(0, len(class_names), target.shape).to(device)
 
+
+        # Generate adversarial examples
             x_adv_targ = pgd_linf_targeted(model, data, y_targ, eps, alpha, n_iters, device)
-            targ_outputs = model(x_adv_targ)
+        
+        # Model inference
+    
+            targ_outputs = model(normalize_cifar(x_adv_targ)).detach()
             _, targ_predicted = targ_outputs.max(1)
 
             true_labels.extend(target.cpu().numpy())
@@ -216,6 +234,10 @@ if __name__ == '__main__':
     args = get_args()
     if args.fname == 'auto':
         args.fname = f'cifar10_{args.model}_{args.mode}{"_ccm" if args.ccm else ""}{"_ccr" if args.ccr else ""}'
+
+    file_path = './save_model/'
+    if not os.path.isdir(file_path):
+        os.mkdir(file_path)
     fname = args.fname
     device = dev(args.device)
     eps = args.epsilon / 255.       # 8/255
@@ -315,63 +337,45 @@ if __name__ == '__main__':
             train_result = train_epoch(model, train_loader, opt, device, attack, eps, class_beta, alpha, iteration)
         
         model.eval()
-        # test
-
         test_result, True_label, Predicted = eval_epoch(model, test_loader, device, class_names, pgd_loss, 8./255., beta, 2./255., 10)
+        if epoch % 10 == 0 or epoch == args.epochs - 1:
+            test_result, True_label, Predicted = eval_epoch(model, test_loader, device, class_names, pgd_loss, 8./255., beta, 2./255., 10)
+            # Extract results
+            clean_accuracy, robust_accuracy, cw_clean, cw_robust, clean_correct, robust_correct = test_result
+            # clean accuracy
+
+            #clean_pred, True_label = clean_evaluate(model, test_loader, device, class_names, mode = 'Test')
+            #clean_conf_matrix = confusion_matrix(True_label, clean_pred)
+            #robust_conf_matrix = confusion_matrix(True_label, Predicted)
+            true_labels_adv, targeted_labels_adv, adv_predictions = targeted_evaluate(model, test_loader, device, class_names, pgd_loss, 8./255., alpha, args.attack_iters, mode='Targeted Test')
+            conf_matrix_adv = confusion_matrix(true_labels_adv, adv_predictions)
+
+            #plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training using CFA and Clean Predictions')
+            #plot_confusion_matrix(robust_conf_matrix, class_names, title='Confusion Matrix for Untargeted Training using CFA and Untargeted Predictions')
+            plot_confusion_matrix(conf_matrix_adv, class_names, 'Confusion Matrix for Untargeted Training using CFA and targeted Predictions')
+
+
+        # test
+        #print('Evaluation started')
+        '''# Extract results
+        clean_accuracy, robust_accuracy, cw_clean, cw_robust, clean_correct, robust_correct = test_result
         clean_pred, True_label = clean_evaluate(model, test_loader, device, class_names, mode = 'Test')
 
-
+        print('Now plotting confusion matrix')
         # Confusion matrices
         clean_conf_matrix = confusion_matrix(True_label, clean_pred)
-        Untargeted_conf_matrix = confusion_matrix(True_label, Predicted)
-        
-        
+        Untargeted_conf_matrix = confusion_matrix(True_label, robust_correct)
+        #Untargeted_conf_matrix = confusion_matrix(True_label, Predicted)
+
         # Plot confusion matrices
         plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Targeted Training using BAT and Clean Predictions')
         plot_confusion_matrix(Untargeted_conf_matrix, class_names, title='Confusion Matrix for Targeted Training using BAT and Untargeted Predictions')
 
         # Plot targeted confusion matrix
         true_labels_adv, targeted_labels_adv, adv_predictions = targeted_evaluate(model, test_loader, device, class_names, attack, 8./255., alpha, args.attack_iters, mode='Targeted Test')
-        conf_matrix_adv = confusion_matrix(targeted_labels_adv, adv_predictions)
-        plot_confusion_matrix(conf_matrix_adv, class_names, 'Confusion Matrix for Targeted Training using BAT and targeted Predictions updated')
+        conf_matrix_adv = confusion_matrix(True_label, adv_predictions)
+        plot_confusion_matrix(conf_matrix_adv, class_names, 'Confusion Matrix for Targeted Training using BAT and targeted Predictions')'''
 
-        '''# Clean Confusion Matrix
-        clean_conf_matrix = confusion_matrix(clean_pred, True_label)
-        row_sums = np.sum(clean_conf_matrix, axis=1)
-
-        # Prevent division by zero
-        row_sums[row_sums == 0] = 1e-10
-
-        clean_df_cm = pd.DataFrame(clean_conf_matrix / row_sums[:, None], index=[i for i in class_names],
-                           columns=[i for i in class_names])
-
-        # CFA Confusion Matrix
-        conf_mat = confusion_matrix(Predicted, True_label)
-        row_sums = np.sum(conf_mat, axis=1)
-
-        # Prevent division by zero
-        row_sums[row_sums == 0] = 1e-10
-
-        targ_df_cm = pd.DataFrame(conf_mat / row_sums[:, None], index=[i for i in class_names],
-                          columns=[i for i in class_names])
-
-        plt.figure(figsize=(12, 6))
-
-        plt.subplot(1, 2, 1)
-        sn.heatmap(clean_df_cm, annot=True, cmap='Blues', cbar=False)
-        plt.xlabel('Predicted')
-        plt.ylabel('True')
-        plt.title('Confusion Matrix for Clean Predictions')
-
-        plt.subplot(1, 2, 2)
-        sn.heatmap(targ_df_cm, annot=True, cmap='Blues', cbar=False)
-        plt.xlabel('True')
-        plt.ylabel('Predicted')
-        plt.title('Confusion Matrix for AT_CCM_PGD')
-
-        plt.tight_layout()
-        plt.savefig('AT_CFA_Confusion_Matrix.png')  
-        plt.show()'''
     
         # valid
         valid_result, _ , _ = eval_epoch(model, valid_loader, device,class_names, pgd_loss, 8./255., beta, 2./255., 10)
@@ -432,12 +436,22 @@ if __name__ == '__main__':
         df = pd.DataFrame(FAWA_data)
         df.to_csv(f'logs/{args.fname}/FAWA_log.csv')
 
+        state = {
+        'net': model.state_dict()
+        }
+
+        file_path = './save_model/'
+        if not os.path.isdir(file_path):
+            os.mkdir(file_path)
+
         # save models
         if epoch >= 0.5 * args.epochs:
             # Main
             index = log_tensor[-1,-1] + cw_tensor[-1, -1].min()
             if index >= save_threshold[0] - 0.02 or epoch >= args.epochs-5:
                 torch.save(model.state_dict(), f'models/{args.fname}/{epoch}.pth')
+                torch.save(state, file_path + args.fname)
+                print('Model Saved!')
                 save_threshold[0] = max(save_threshold[0], index.item())
             
             # EMA
@@ -451,3 +465,6 @@ if __name__ == '__main__':
             if index >= save_threshold[2] - 0.02 or epoch >= args.epochs-5:
                 torch.save(FAWA_model.state_dict(), f'models/{args.fname}/FAWA_{epoch}.pth')
                 save_threshold[2] = max(save_threshold[2], index.item())
+
+
+                

@@ -4,3 +4,4 @@ __pycache__/
 hot_start.py
 models/
 logs/
+*.out

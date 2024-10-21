@@ -1,5 +1,8 @@
-env
+venv
 .vscode
 Pytorch-Adversarial-Training-CIFAR/Conf_Mat_targ(Mix_Up).png
 Pytorch-Adversarial-Training-CIFAR/Conf_Mat_targ.png
 Pytorch-Adversarial-Training-CIFAR/pgd_adversarial_training_copy.py
+*.sh
+data
+*.out

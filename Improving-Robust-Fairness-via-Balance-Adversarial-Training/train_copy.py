@@ -74,6 +74,7 @@ transform_train = transforms.Compose([
 transform_test = transforms.Compose([
     transforms.ToTensor(),
 ])
+file_name = 'BAT_clean_training'
 trainset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=True, download=True, transform=transform_train)
 train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, **kwargs)
 testset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=False, download=True, transform=transform_test)
@@ -135,6 +136,13 @@ def train(args, model, device, train_loader, optimizer, epoch, ema=None):
 
         loss.backward()
         optimizer.step()
+        state = {
+            'net':model.state_dict()
+        }
+        if not os.path.isdir('./save_model/BAT_clean'):
+            os.mkdir('./save_model/BAT_clean')
+        torch.save(state,'./save_model/BAT_clean/'+file_name)
+        print('Model Saved!')
 
         # print progress
         if batch_idx % args.log_interval == 0:
@@ -262,7 +270,7 @@ def eval_test_new(model, device, test_loader):
             adv_output = model(adv_data)
 
             _, predicted_targeted = adv_output.max(1)
-            targeted_correct += predicted_targeted.eq(y_targ).sum().item()
+            targeted_correct += predicted_targeted.eq(targets).sum().item()
             targeted_prediction.extend(predicted_targeted.cpu().numpy())
 
             #Untargeted accuracy with mix_up

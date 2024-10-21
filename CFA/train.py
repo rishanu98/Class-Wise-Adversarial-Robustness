@@ -115,7 +115,7 @@ def train_epoch(model, loader, opt, device, attack, eps, beta, alpha, n_iters):
 
         logger.update_robust(output, y)
 
-        clean_output = model(normalize_cifar(x)).detach()
+        clean_output = model(normalize_cifar(x)).detach() # removed normalized input
         logger.update_clean(clean_output, y)
         if args.debug:
             break
@@ -140,7 +140,7 @@ def eval_epoch(model, loader, device, class_name, attack, eps, beta, alpha, n_it
         Predicted.extend(predicted.cpu().numpy())
         logger.update_robust(output, y)
 
-        clean_output = model(normalize_cifar(x)).detach()
+        clean_output = model(normalize_cifar(x)).detach()   # removed normalized input
         logger.update_clean(clean_output, y)
         if args.debug:
             break
@@ -164,7 +164,7 @@ def clean_evaluate(model, loader, device, class_names, mode='Test'):
             true_label.extend(target.cpu().numpy())
 
             # Clean test
-            outputs = model(normalize_cifar(data)).detach()
+            outputs = model(normalize_cifar(data)).detach()     # removed normalized input
 
             _, clean_predicted = outputs.max(1)  # Get the index of the max log-probability
             correct += clean_predicted.eq(target).sum().item()
@@ -325,6 +325,7 @@ if __name__ == '__main__':
                 attack = cw_fat_loss
             else:
                 attack = fat_loss
+        
 
 
         if args.ccm:
@@ -351,26 +352,6 @@ if __name__ == '__main__':
             plot_confusion_matrix(conf_matrix_adv, class_names, 'Confusion Matrix for Untargeted Training using CFA and targeted Predictions')
 
 
-        # test
-        #print('Evaluation started')
-        '''# Extract results
-        clean_accuracy, robust_accuracy, cw_clean, cw_robust, clean_correct, robust_correct = test_result
-        clean_pred, True_label = clean_evaluate(model, test_loader, device, class_names, mode = 'Test')
-
-        print('Now plotting confusion matrix')
-        # Confusion matrices
-        clean_conf_matrix = confusion_matrix(True_label, clean_pred)
-        Untargeted_conf_matrix = confusion_matrix(True_label, robust_correct)
-        #Untargeted_conf_matrix = confusion_matrix(True_label, Predicted)
-
-        # Plot confusion matrices
-        plot_confusion_matrix(clean_conf_matrix, class_names, title='Confusion Matrix for Targeted Training using BAT and Clean Predictions')
-        plot_confusion_matrix(Untargeted_conf_matrix, class_names, title='Confusion Matrix for Targeted Training using BAT and Untargeted Predictions')
-
-        # Plot targeted confusion matrix
-        true_labels_adv, targeted_labels_adv, adv_predictions = targeted_evaluate(model, test_loader, device, class_names, attack, 8./255., alpha, args.attack_iters, mode='Targeted Test')
-        conf_matrix_adv = confusion_matrix(True_label, adv_predictions)
-        plot_confusion_matrix(conf_matrix_adv, class_names, 'Confusion Matrix for Targeted Training using BAT and targeted Predictions')'''
 
     
         # valid
@@ -432,12 +413,22 @@ if __name__ == '__main__':
         df = pd.DataFrame(FAWA_data)
         df.to_csv(f'logs/{args.fname}/FAWA_log.csv')
 
+        state = {
+        'net': model.state_dict()
+        }
+
+        file_path = './save_model/'
+        if not os.path.isdir(file_path):
+            os.mkdir(file_path)
+
         # save models
         if epoch >= 0.5 * args.epochs:
             # Main
             index = log_tensor[-1,-1] + cw_tensor[-1, -1].min()
             if index >= save_threshold[0] - 0.02 or epoch >= args.epochs-5:
                 torch.save(model.state_dict(), f'models/{args.fname}/{epoch}.pth')
+                torch.save(state, file_path + args.fname)
+                print('Model Saved!')
                 save_threshold[0] = max(save_threshold[0], index.item())
             
             # EMA
